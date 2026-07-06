@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Конспекты — фундамент для Go-собеса</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0f1420">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Go Interview">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+
+<style>
+  :root{
+    --bg:#0f1420;--card:#171e2e;--card2:#1c2438;--text:#e8ecf4;--muted:#8b95ab;
+    --accent:#00add8;--accent2:#5dc9e2;--border:#2a3550;--code:#0b0f18;--ok:#3ddc97;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:15px/1.6 -apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:80px}
+  header{background:rgba(15,20,32,.96);border-bottom:1px solid var(--border);padding:14px 24px}
+  header h1{font-size:20px;color:var(--accent2)}
+  header .sub{color:var(--muted);font-size:13px;margin-top:3px}
+  header .sub a{color:#ffd166;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;text-decoration-color:rgba(255,209,102,.6)}
+  .toolbar{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
+  #search{flex:1;min-width:220px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px}
+  #search:focus{outline:none;border-color:var(--accent)}
+  #stats{color:var(--muted);font-size:13px}
+  main{max-width:900px;margin:0 auto;padding:20px 24px}
+  .toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:22px;columns:2;column-gap:32px}
+  .toc a{display:block;color:#ffd166;text-decoration:none;font-size:13.5px;padding:2px 0;break-inside:avoid}
+  .toc a:hover{color:#ffe49a;text-decoration-color:#ffe49a}
+  .toc .h{font-weight:700;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.05em;margin:10px 0 3px}
+  .toc .h:first-child{margin-top:0}
+  h2.cat{font-size:17px;color:var(--accent2);margin:30px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px;scroll-margin-top:80px}
+  .card h3{font-size:16px;color:#eef2fa;margin-bottom:6px}
+  .card .tldr{background:rgba(61,220,151,.08);border-left:3px solid var(--ok);border-radius:0 8px 8px 0;padding:7px 12px;margin:8px 0;font-size:13.5px}
+  .card .tldr b{color:var(--ok)}
+  .card p{margin:7px 0}
+  .card ul,.card ol{margin:7px 0 7px 20px}
+  .card li{margin:3px 0}
+  .card b{color:#eef2fa}
+  .card code{background:var(--code);padding:1px 6px;border-radius:5px;font:13px 'SF Mono',Consolas,monospace;color:var(--accent2)}
+  .card pre{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:11px 13px;overflow-x:auto;font:12.5px/1.55 'SF Mono',Consolas,monospace;color:#cdd6e8;margin:8px 0}
+  .card pre code{background:none;padding:0;color:inherit}
+  .card table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%}
+  .card th,.card td{border:1px solid var(--border);padding:5px 9px;text-align:left}
+  .card th{background:var(--card2);color:var(--muted)}
+  .analogy{color:var(--muted);font-style:italic;font-size:13.5px;margin:7px 0}
+  .analogy::before{content:'🔎 ';font-style:normal}
+  .see{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .see a{color:#ffd166;text-decoration:underline;text-underline-offset:2px}
+  .see a:hover{color:#fff}
+  .hidden{display:none!important}
+  mark{background:rgba(255,209,102,.35);color:inherit;border-radius:3px}
+
+  /* не копировать скрытое содержимое свёрнутых details (иначе выделение расползается) */
+  details:not([open]) > :not(summary){user-select:none;-webkit-user-select:none}
+  .qbox{background:rgba(93,201,226,.08);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:8px 12px;margin:10px 0;font-size:13px}
+  .qbox b{color:var(--accent2)}
+  table{border-collapse:collapse;margin:8px 0;font-size:12.5px}
+  th,td{border:1px solid var(--border);padding:4px 9px;text-align:left}
+  th{color:var(--accent2)}
+  .card details.more{margin-top:10px;border-top:1px dashed var(--border);padding-top:8px}
+  .card details.more>summary{cursor:pointer;color:var(--accent2);font-size:13.5px;font-weight:600;list-style:none}
+  .card details.more>summary::-webkit-details-marker{display:none}
+  .card details.more>summary::before{content:"\25B8  "}
+  .card details.more[open]>summary::before{content:"\25BE  "}
+  .card details.more h4{font-size:14px;color:#eef2fa;margin:14px 0 4px}
+  .card svg.ill{max-width:100%;height:auto;margin:10px 0;display:block;background:#0e1524;border:1px solid var(--border);border-radius:8px}
+  .illwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0;border:1px solid var(--border);border-radius:8px;background:#0e1524}
+  .illwrap svg.ill{margin:0;border:none;border-radius:0;display:block}
+  .illhint{display:none}
+  @media(max-width:600px){
+    .illwrap svg.ill{width:600px;max-width:none}
+    .illhint{display:block;font-size:10px;color:var(--muted);text-align:center;margin:-2px 0 10px;user-select:none}
+    .card{padding:14px 12px}
+  }
+  a{color:#ffd166;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;text-decoration-color:rgba(255,209,102,.6)}
+  a:hover{color:#ffe49a;text-decoration-color:#ffe49a}
+  pre.go .k{color:#c678dd}
+  pre.go .c1{color:#d19a66}
+  pre.go .ty{color:#56b6c2}
+  pre.go .nu{color:#d19a66}
+  pre.go .st{color:#e5c07b}
+  pre.go .cm{color:#6c7a96;font-style:italic}
+  .warn{background:rgba(255,107,107,.08);border-left:3px solid #ff6b6b;border-radius:0 8px 8px 0;padding:8px 12px;margin:10px 0;font-size:13px}
+  .warn b{color:#ff8a8a}
+</style>
+</head>
+<body>
+<header>
+  <h1>Конспекты — фундамент для Go-собеса</h1>
+  <div class="sub"><a href="index.html">🏠 Главная</a> · <a href="go-interview-bank.html">📚 Банк вопросов</a> · <a href="go-interview-tasks.html">🧩 Банк задач</a> · <a href="go-interview-mocks.html">🎤 Моки</a><br>Базовые понятия «с нуля». Термин непонятен → ищи его здесь.</div>
+  <div class="toolbar">
+    <input id="search" type="text" placeholder="Поиск понятия… (quicksort, хеш, UTF-8, TLB, ACID…)">
+    <span id="stats"></span>
+  </div>
+</header>
+<main>
+<nav class="toc" id="toc"></nav>
+
+<!-- ==================== СЛОЖНОСТЬ ==================== -->
+<h2 class="cat" id="c-algo">Алгоритмы и сложность</h2>
+
+<div class="card" id="bigo">
+<h3>Big-O — оценка сложности</h3>
+<div class="tldr"><b>TL;DR:</b> Big-O показывает, как <b>растёт время (или память)</b> алгоритма при увеличении размера входных данных <code>n</code>, игнорируя константы.</div>
+<p>Нас интересует не «сколько секунд», а «во сколько раз станет дольше, если данных станет в 10 раз больше». Константы и мелочи отбрасываем — важна форма роста.</p>
+<table>
+<tr><th>Обозначение</th><th>Название</th><th>Пример</th></tr>
+<tr><td><code>O(1)</code></td><td>константное</td><td>доступ к элементу массива по индексу, get из хеш-таблицы</td></tr>
+<tr><td><code>O(log n)</code></td><td>логарифмическое</td><td>бинарный поиск, поиск в сбалансированном дереве</td></tr>
+<tr><td><code>O(n)</code></td><td>линейное</td><td>перебор всего массива</td></tr>
+<tr><td><code>O(n log n)</code></td><td>«почти линейное»</td><td>хорошие сортировки (quicksort, merge)</td></tr>
+<tr><td><code>O(n²)</code></td><td>квадратичное</td><td>вложенные циклы, пузырёк</td></tr>
+<tr><td><code>O(2ⁿ)</code></td><td>экспоненциальное</td><td>полный перебор комбинаций (подбор пароля)</td></tr>
+</table>
+<p class="analogy">O(1) — достать книгу с полки по номеру; O(n) — пролистать всю стопку; O(log n) — искать слово в словаре, деля его пополам; O(n²) — сравнить каждого с каждым в комнате.</p>
+<p><b>Ещё говорят:</b> «сложность в худшем случае» (worst case), «в среднем» (average), «амортизированная» — усреднённая по многим операциям (например, append в слайс: обычно O(1), изредка O(n) при реаллокации, но <i>амортизированно</i> O(1)).</p>
+</div>
+
+<div class="card" id="quicksort">
+<h3>Быстрая сортировка (quicksort)</h3>
+<div class="tldr"><b>Короткий ответ:</b> берём «опорный» элемент (pivot), <b>раскидываем</b> меньшие влево, бо́льшие вправо (partition), и рекурсивно сортируем половинки. В среднем <b>O(n·log n)</b>, на практике очень быстрая; в худшем случае — <b>O(n²)</b>. Сортирует «на месте», неустойчивая.</div>
+<p class="analogy">Раскладываем колоду по росту: берём карту-эталон, все ниже — в левую кучу, выше — в правую, потом так же сортируем каждую кучу.</p>
+<details class="more"><summary>Как это работает — механизм, пример и когда O(n²)</summary>
+<h4>Механизм: partition (разбиение)</h4>
+<p>Сердце алгоритма — <b>partition</b>: за один проход переставить элементы так, чтобы слева от pivot оказались меньшие, справа — бо́льшие. Прогон (pivot = последний, схема Ломуто), <code>i</code> — граница «меньших»:</p>
+<pre>[7, 2, 5, 1, 3]   pivot = 3
+ j=0: 7&gt;3  — пропускаем
+ j=1: 2&lt;3  → [2, 7, 5, 1, 3]  (i=0)
+ j=2: 5&gt;3  — пропускаем
+ j=3: 1&lt;3  → [2, 1, 5, 7, 3]  (i=1)
+ ставим pivot на место i+1:  [2, 1, 3, 7, 5]
+                                     ^ pivot
+ слева меньшие [2,1] · справа бо́льшие [7,5] → рекурсия по ним</pre>
+<h4>Почему в среднем O(n·log n)</h4>
+<p>Если pivot делит массив примерно пополам, глубина рекурсии ~log n, а на каждом уровне суммарно проходим все n элементов:</p>
+<svg class="ill" viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="18" fill="#3ddc97" font-size="12" text-anchor="middle">Хороший pivot — делит пополам</text>
+<rect x="288" y="28" width="64" height="26" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="320" y="46" fill="#e8ecf4" font-size="11" text-anchor="middle">n</text>
+<line x1="300" y1="54" x2="210" y2="74" stroke="#8b95ab"/><line x1="340" y1="54" x2="430" y2="74" stroke="#8b95ab"/>
+<rect x="178" y="76" width="64" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="210" y="94" fill="#c3ccdf" font-size="11" text-anchor="middle">n/2</text>
+<rect x="398" y="76" width="64" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="430" y="94" fill="#c3ccdf" font-size="11" text-anchor="middle">n/2</text>
+<line x1="190" y1="102" x2="140" y2="122" stroke="#8b95ab"/><line x1="230" y1="102" x2="280" y2="122" stroke="#8b95ab"/>
+<line x1="410" y1="102" x2="360" y2="122" stroke="#8b95ab"/><line x1="450" y1="102" x2="500" y2="122" stroke="#8b95ab"/>
+<rect x="112" y="124" width="56" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="140" y="141" fill="#8b95ab" font-size="10" text-anchor="middle">n/4</text>
+<rect x="252" y="124" width="56" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="280" y="141" fill="#8b95ab" font-size="10" text-anchor="middle">n/4</text>
+<rect x="332" y="124" width="56" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="360" y="141" fill="#8b95ab" font-size="10" text-anchor="middle">n/4</text>
+<rect x="472" y="124" width="56" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="500" y="141" fill="#8b95ab" font-size="10" text-anchor="middle">n/4</text>
+<text x="320" y="172" fill="#8b95ab" font-size="10.5" text-anchor="middle">на каждом уровне ~n работы · уровней ~log n → O(n·log n)</text>
+</svg>
+<h4>Когда вырождается в O(n²)</h4>
+<p>Если pivot почти всегда оказывается минимумом или максимумом, деления «пополам» нет — одна часть пустая, вторая размера n−1. Классика: <b>уже отсортированный вход</b> и pivot = последний (или первый) элемент.</p>
+<pre>Вход: [1, 2, 3, 4, 5], pivot = последний
+[1,2,3,4,5] → pivot 5 в конце, слева [1,2,3,4], справа []
+[1,2,3,4]   → pivot 4,             слева [1,2,3],   справа []
+[1,2,3]     → pivot 3,             слева [1,2],     справа []
+...
+каждый шаг отрезает всего 1 элемент → n уровней → O(n²)</pre>
+<svg class="ill" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="18" fill="#ff6b6b" font-size="12" text-anchor="middle">Плохой pivot (отсортированный вход) — отрезает по 1</text>
+<rect x="40" y="28" width="70" height="24" rx="5" fill="#3a2330" stroke="#ff6b6b"/><text x="75" y="45" fill="#e8ecf4" font-size="10.5" text-anchor="middle">n</text>
+<line x1="90" y1="52" x2="150" y2="66" stroke="#8b95ab"/>
+<rect x="120" y="64" width="70" height="24" rx="5" fill="#3a2330" stroke="#ff6b6b"/><text x="155" y="81" fill="#e8ecf4" font-size="10.5" text-anchor="middle">n-1</text>
+<line x1="170" y1="88" x2="230" y2="102" stroke="#8b95ab"/>
+<rect x="200" y="100" width="70" height="24" rx="5" fill="#3a2330" stroke="#ff6b6b"/><text x="235" y="117" fill="#e8ecf4" font-size="10.5" text-anchor="middle">n-2</text>
+<line x1="250" y1="124" x2="310" y2="138" stroke="#8b95ab"/>
+<rect x="280" y="136" width="70" height="24" rx="5" fill="#3a2330" stroke="#ff6b6b"/><text x="315" y="153" fill="#e8ecf4" font-size="10.5" text-anchor="middle">n-3</text>
+<text x="400" y="155" fill="#8b95ab" font-size="12">...</text>
+<text x="320" y="185" fill="#ff6b6b" font-size="10.5" text-anchor="middle">уровней n, на каждом ~n работы → O(n²)</text>
+</svg>
+<p><b>Как защищаются:</b> выбирать pivot <b>случайно</b> или как <b>медиану трёх</b> (первый/средний/последний); при слишком глубокой рекурсии — переключаться на heapsort. Именно это делает <a href="#pdqsort">pdqsort</a> — сортировка по умолчанию в Go.</p>
+<h4>Код (Ломуто)</h4>
+<pre class="go">func quicksort(a []int) {
+    if len(a) &lt; 2 {
+        return
+    }
+    p := partition(a)
+    quicksort(a[:p])
+    quicksort(a[p+1:])
+}
+
+func partition(a []int) int {
+    pivot := a[len(a)-1] // опорный — последний
+    i := 0
+    for j := 0; j &lt; len(a)-1; j++ {
+        if a[j] &lt; pivot {
+            a[i], a[j] = a[j], a[i]
+            i++
+        }
+    }
+    a[i], a[len(a)-1] = a[len(a)-1], a[i] // pivot на своё место
+    return i
+}</pre>
+<div class="qbox"><b>Спрашивают на собесе:</b> «как работает partition?»; «средняя и худшая сложность и <b>почему</b>?»; «на каком входе quicksort даёт O(n²)?» (уже отсортированный + крайний pivot); «как этого избежать?» (рандомный/медианный pivot, pdqsort); «почему неустойчивая и сколько памяти?» (O(log n) на стек рекурсии).</div>
+</details>
+</div>
+
+
+<div class="card" id="heapsort">
+<h3>Кучная сортировка (heapsort)</h3>
+<div class="tldr"><b>Короткий ответ:</b> строим из массива <a href="#heap">кучу</a> (в корне всегда максимум) и по очереди вынимаем максимумы в конец. <b>Всегда O(n·log n)</b>, без «плохих» случаев, «на месте» (память O(1)); неустойчивая.</div>
+<p class="analogy">Турнир на выбывание: наверх всплывает сильнейший, забираем его, остальные снова разыгрывают первое место.</p>
+<details class="more"><summary>Механизм, схема и код</summary>
+<h4>Как это работает</h4>
+<p>Куча (binary heap) — это массив, который читается как двоичное дерево: у узла с индексом <code>i</code> дети — <code>2i+1</code> и <code>2i+2</code>. Свойство max-heap: родитель ≥ детей, поэтому в корне (индекс 0) — максимум.</p>
+<svg class="ill" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="300" y="16" fill="#5dc9e2" font-size="11" text-anchor="middle">max-heap: родитель &#8805; детей → максимум в корне</text>
+<line x1="300" y1="52" x2="220" y2="92" stroke="#8b95ab"/><line x1="300" y1="52" x2="380" y2="92" stroke="#8b95ab"/>
+<line x1="220" y1="108" x2="170" y2="146" stroke="#8b95ab"/><line x1="220" y1="108" x2="270" y2="146" stroke="#8b95ab"/>
+<circle cx="300" cy="40" r="20" fill="#26324d" stroke="#5dc9e2" stroke-width="2"/><text x="300" y="45" fill="#e8ecf4" font-size="12" text-anchor="middle">9</text>
+<circle cx="220" cy="100" r="20" fill="#233049" stroke="#3a4a6b"/><text x="220" y="105" fill="#c3ccdf" font-size="12" text-anchor="middle">5</text>
+<circle cx="380" cy="100" r="20" fill="#233049" stroke="#3a4a6b"/><text x="380" y="105" fill="#c3ccdf" font-size="12" text-anchor="middle">6</text>
+<circle cx="170" cy="158" r="18" fill="#233049" stroke="#3a4a6b"/><text x="170" y="163" fill="#c3ccdf" font-size="11" text-anchor="middle">1</text>
+<circle cx="270" cy="158" r="18" fill="#233049" stroke="#3a4a6b"/><text x="270" y="163" fill="#c3ccdf" font-size="11" text-anchor="middle">3</text>
+<text x="510" y="86" fill="#8b95ab" font-size="10.5" text-anchor="middle">массив: [9,5,6,1,3]</text>
+<text x="510" y="104" fill="#8b95ab" font-size="10.5" text-anchor="middle">дети узла i → 2i+1, 2i+2</text>
+<text x="300" y="192" fill="#8b95ab" font-size="10.5" text-anchor="middle">вынимаем корень (9) в конец → «просеиваем» новый корень вниз → повторяем</text>
+</svg>
+<p>Алгоритм: (1) <b>построить</b> max-heap из массива (просеять узлы снизу вверх); (2) поменять корень (максимум) с последним элементом, <b>уменьшить</b> кучу на 1 и «просеять» новый корень вниз; (3) повторять, пока куча не опустеет. Максимумы копятся в конце → массив отсортирован.</p>
+<h4>Код (siftDown)</h4>
+<pre class="go">func heapSort(a []int) {
+    n := len(a)
+    for i := n/2 - 1; i &gt;= 0; i-- { // построить кучу
+        siftDown(a, i, n)
+    }
+    for end := n - 1; end &gt; 0; end-- { // вынимать максимум в конец
+        a[0], a[end] = a[end], a[0]
+        siftDown(a, 0, end)
+    }
+}
+
+func siftDown(a []int, i, n int) {
+    for {
+        l, r, big := 2*i+1, 2*i+2, i
+        if l &lt; n &amp;&amp; a[l] &gt; a[big] { big = l }
+        if r &lt; n &amp;&amp; a[r] &gt; a[big] { big = r }
+        if big == i { return }
+        a[i], a[big] = a[big], a[i]
+        i = big
+    }
+}</pre>
+<div class="qbox"><b>Спрашивают на собесе:</b> «как массив представляет кучу (формула индексов)?»; «почему гарантированно n·log n?»; «сколько доп. памяти?» (O(1) — на месте); «почему на практике медленнее quicksort?» (плохая кэш-локальность — прыжки по дереву); «зачем он нужен, если есть quicksort?» (страховка в <a href="#pdqsort">pdqsort</a>).</div>
+</details>
+</div>
+
+
+<div class="card" id="insertionsort">
+<h3>Сортировка вставками (insertion sort)</h3>
+<div class="tldr"><b>Короткий ответ:</b> берём элементы по одному и вставляем каждый на место среди уже отсортированных слева. <b>O(n²)</b> в худшем, но <b>очень быстрая на маленьких и почти отсортированных</b> массивах; устойчивая, на месте.</div>
+<p class="analogy">Так сортируют карты в руке: берёшь новую карту и вставляешь её между уже разложенными по порядку.</p>
+<details class="more"><summary>Прогон и код</summary>
+<h4>Прогон: [5, 2, 4, 1]</h4>
+<pre>[5 | 2, 4, 1]   старт: слева «отсортировано» только 5
+вставляем 2  → [2, 5 | 4, 1]
+вставляем 4  → [2, 4, 5 | 1]
+вставляем 1  → [1, 2, 4, 5]
+(на каждом шаге сдвигаем бо́льшие вправо и кладём элемент на освободившееся место)</pre>
+<h4>Код</h4>
+<pre class="go">func insertionSort(a []int) {
+    for i := 1; i &lt; len(a); i++ {
+        key := a[i]
+        j := i - 1
+        for j &gt;= 0 &amp;&amp; a[j] &gt; key { // сдвигаем бо́льшие вправо
+            a[j+1] = a[j]
+            j--
+        }
+        a[j+1] = key // вставляем на место
+    }
+}</pre>
+<p><b>Почему её любят в гибридах:</b> на почти отсортированном входе работает почти за <b>O(n)</b> (внутренний цикл почти не крутится), и на коротких кусках обгоняет «умные» сортировки за счёт простоты и отсутствия накладных расходов. Поэтому её вызывают на мелких подмассивах внутри <a href="#pdqsort">pdqsort</a>.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «лучший и худший случай?» (O(n) на почти отсортированном / O(n²) на обратно отсортированном); «устойчива ли?» (да); «зачем она в быстрых сортировках?» (мелкие куски).</div>
+</details>
+</div>
+
+
+<div class="card" id="mergesort">
+<h3>Сортировка слиянием (merge sort)</h3>
+<div class="tldr"><b>Короткий ответ:</b> делим массив пополам, рекурсивно сортируем половины, потом <b>сливаем</b> два отсортированных куска в один. <b>Всегда O(n·log n)</b>, <b>устойчивая</b>, но нужна доп. память O(n).</div>
+<p class="analogy">Две отсортированные стопки карт складываем в одну: сравниваем верхние карты и берём меньшую — и так пока стопки не кончатся.</p>
+<details class="more"><summary>Механизм, схема и код</summary>
+<h4>Как это работает</h4>
+<p>Два шага: <b>divide</b> — режем пополам до кусков длины 1 (они уже «отсортированы»); <b>merge</b> — на обратном ходе сливаем пары отсортированных кусков. Слияние идёт одновременно по двум спискам: на каждом шаге берём меньшую из «голов».</p>
+<svg class="ill" viewBox="0 0 640 224" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="15" fill="#5dc9e2" font-size="11" text-anchor="middle">вниз — делим пополам · вверх — сливаем отсортированные</text>
+<rect x="264" y="22" width="112" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="320" y="39" fill="#e8ecf4" font-size="11" text-anchor="middle">[5, 2, 4, 1]</text>
+<line x1="290" y1="46" x2="200" y2="64" stroke="#8b95ab"/><line x1="350" y1="46" x2="440" y2="64" stroke="#8b95ab"/>
+<rect x="160" y="64" width="80" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="200" y="81" fill="#c3ccdf" font-size="11" text-anchor="middle">[5, 2]</text>
+<rect x="400" y="64" width="80" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="440" y="81" fill="#c3ccdf" font-size="11" text-anchor="middle">[4, 1]</text>
+<line x1="180" y1="88" x2="140" y2="106" stroke="#8b95ab"/><line x1="220" y1="88" x2="256" y2="106" stroke="#8b95ab"/>
+<line x1="420" y1="88" x2="380" y2="106" stroke="#8b95ab"/><line x1="460" y1="88" x2="500" y2="106" stroke="#8b95ab"/>
+<rect x="112" y="106" width="52" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="138" y="123" fill="#8b95ab" font-size="10.5" text-anchor="middle">[5]</text>
+<rect x="230" y="106" width="52" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="256" y="123" fill="#8b95ab" font-size="10.5" text-anchor="middle">[2]</text>
+<rect x="352" y="106" width="52" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="378" y="123" fill="#8b95ab" font-size="10.5" text-anchor="middle">[4]</text>
+<rect x="474" y="106" width="52" height="24" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="500" y="123" fill="#8b95ab" font-size="10.5" text-anchor="middle">[1]</text>
+<text x="320" y="152" fill="#3ddc97" font-size="10.5" text-anchor="middle">сливаем обратно вверх</text>
+<rect x="160" y="160" width="80" height="24" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="200" y="177" fill="#e8ecf4" font-size="11" text-anchor="middle">[2, 5]</text>
+<rect x="400" y="160" width="80" height="24" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="440" y="177" fill="#e8ecf4" font-size="11" text-anchor="middle">[1, 4]</text>
+<rect x="264" y="192" width="112" height="24" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="320" y="209" fill="#e8ecf4" font-size="11" text-anchor="middle">[1, 2, 4, 5]</text>
+</svg>
+<h4>Про устойчивость и память</h4>
+<p><b>Устойчивая (stable):</b> при слиянии берём из левого куска при <b>равенстве</b> (<code>l[i] &lt;= r[j]</code>) — значит равные элементы сохраняют исходный порядок (два «Иванова» не поменяются местами). В Go <code>sort.Stable</code> / <code>slices.SortStableFunc</code> используют вариант merge sort. Минус — буфер O(n) под слияние.</p>
+<h4>Код</h4>
+<pre class="go">func mergeSort(a []int) []int {
+    if len(a) &lt; 2 {
+        return a
+    }
+    mid := len(a) / 2
+    left := mergeSort(a[:mid])
+    right := mergeSort(a[mid:])
+    return merge(left, right)
+}
+
+func merge(l, r []int) []int {
+    res := make([]int, 0, len(l)+len(r))
+    i, j := 0, 0
+    for i &lt; len(l) &amp;&amp; j &lt; len(r) {
+        if l[i] &lt;= r[j] { // &lt;= → устойчивость
+            res = append(res, l[i]); i++
+        } else {
+            res = append(res, r[j]); j++
+        }
+    }
+    res = append(res, l[i:]...)
+    res = append(res, r[j:]...)
+    return res
+}</pre>
+<div class="qbox"><b>Спрашивают на собесе:</b> «почему всегда n·log n (без плохих случаев)?»; «что значит устойчивая и как это обеспечивается?»; «сколько доп. памяти?» (O(n)); «когда предпочесть merge sort quicksort-у?» (нужна стабильность / гарантия / внешняя сортировка больших данных).</div>
+</details>
+</div>
+
+
+<div class="card" id="pdqsort">
+<h3>pdqsort (сортировка по умолчанию в Go)</h3>
+<div class="tldr"><b>Короткий ответ:</b> «pattern-defeating quicksort» — гибрид: основа <a href="#quicksort">quicksort</a> + <a href="#insertionsort">insertion sort</a> на мелких кусках + <a href="#heapsort">heapsort</a> как страховка от O(n²). Это дефолт <code>sort.Sort</code>, <code>slices.Sort</code> (неустойчивая).</div>
+<details class="more"><summary>Как комбинирует три сортировки и «побеждает» плохие данные</summary>
+<ul>
+<li><b>Основа — quicksort</b>: быстрый в среднем, сортирует на месте.</li>
+<li><b>Мелкие куски → insertion sort</b>: на подмассивах из нескольких элементов он быстрее.</li>
+<li><b>Слишком глубокая рекурсия → heapsort</b>: если quicksort начал вырождаться (риск O(n²)), pdqsort переключается на heapsort, который <b>гарантирует</b> O(n·log n).</li>
+</ul>
+<p><b>Почему «pattern-defeating»:</b> обычный quicksort можно «сломать» специально подобранным или уже отсортированным входом (см. пример O(n²) в карточке <a href="#quicksort">quicksort</a>). pdqsort это <b>детектирует</b>: выбирает pivot по медиане, тасует элементы при подозрительных паттернах и ограничивает глубину рекурсии — поэтому сложность не вырастает до квадратичной ни на каком входе.</p>
+<p>Для <b>устойчивой</b> сортировки Go применяет block merge sort (<code>sort.Stable</code>, <code>slices.SortStableFunc</code>).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «какая сортировка в Go по умолчанию и почему такая?»; «как pdqsort защищает от O(n²)?»; «когда insertion, когда heapsort внутри неё?»; «чем сортировать, чтобы сохранить порядок равных?» (<code>slices.SortStableFunc</code>).</div>
+</details>
+</div>
+
+
+<div class="card" id="binsearch">
+<h3>Бинарный (двоичный) поиск</h3>
+<div class="tldr"><b>Короткий ответ:</b> поиск в <b>отсортированном</b> массиве делением пополам: сравниваем с серединой и каждый раз отбрасываем половину. <b>O(log n)</b>.</div>
+<p class="analogy">Угадать число от 1 до 1000 за ~10 вопросов «больше/меньше»: каждый ответ убирает половину вариантов.</p>
+<details class="more"><summary>Код, прогон и подводные камни</summary>
+<h4>Код (итеративно)</h4>
+<pre class="go">func binSearch(a []int, target int) int {
+    lo, hi := 0, len(a)-1
+    for lo &lt;= hi {
+        mid := lo + (hi-lo)/2 // так не переполнится (не (lo+hi)/2)
+        switch {
+        case a[mid] == target:
+            return mid
+        case a[mid] &lt; target:
+            lo = mid + 1 // искомое правее
+        default:
+            hi = mid - 1 // искомое левее
+        }
+    }
+    return -1 // не найдено
+}</pre>
+<h4>Прогон: ищем 7 в [1, 3, 5, 7, 9, 11]</h4>
+<pre>lo=0 hi=5  mid=2  a[2]=5  &lt;7 → lo=3
+lo=3 hi=5  mid=4  a[4]=9  &gt;7 → hi=3
+lo=3 hi=3  mid=3  a[3]=7  =7 → нашли, индекс 3</pre>
+<h4>Тонкости</h4>
+<ul>
+<li><b>Только на отсортированных</b> данных — иначе результат бессмыслен.</li>
+<li><b>Переполнение:</b> <code>mid := (lo+hi)/2</code> может переполнить int на огромных индексах — классический баг; пишем <code>lo + (hi-lo)/2</code>.</li>
+<li>Инвариант границ: искомое всегда в <code>[lo..hi]</code>; выход из цикла при <code>lo &gt; hi</code> — не нашли.</li>
+<li><b>В Go готовое:</b> <code>slices.BinarySearch(s, x)</code> (вернёт индекс и <code>found bool</code>); <code>sort.Search(n, f)</code> — обобщённый поиск «первого, где условие истинно» (удобно для нижней границы / вставки).</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «сложность и почему log n?»; «как избежать переполнения при вычислении середины?»; «как найти <b>первое</b> вхождение / позицию для вставки?» (нижняя граница, <code>sort.Search</code>); «что если массив не отсортирован?».</div>
+</details>
+</div>
+
+
+<div class="card" id="array">
+<h3>Массив и связный список</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>массив</b> — элементы лежат подряд в памяти: доступ по индексу O(1) и отличная кэш-локальность, но вставка/удаление в середину — O(n) (сдвиг) и размер фиксирован. <b>Связный список</b> — элементы разбросаны и связаны ссылками: вставка/удаление узла — O(1), <b>но только если этот узел уже на руках</b> (найти позицию — всё равно O(n)); доступ по индексу — O(n), кэш плохой.</div>
+<p class="analogy">Массив — ряд пронумерованных ящиков вплотную (сразу прыгаешь к нужному номеру). Список — записки, где каждая говорит «следующая лежит вон там».</p>
+<details class="more"><summary>Схема, сравнение и что брать в Go</summary>
+<h4>Как они лежат в памяти</h4>
+<svg class="ill" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="300" y="18" fill="#5dc9e2" font-size="11.5" text-anchor="middle">МАССИВ — элементы подряд в памяти</text>
+<rect x="184" y="30" width="60" height="36" fill="#233049" stroke="#5dc9e2"/><text x="214" y="53" fill="#e8ecf4" font-size="12" text-anchor="middle">A</text><text x="214" y="80" fill="#8b95ab" font-size="10" text-anchor="middle">0</text>
+<rect x="244" y="30" width="60" height="36" fill="#233049" stroke="#5dc9e2"/><text x="274" y="53" fill="#e8ecf4" font-size="12" text-anchor="middle">B</text><text x="274" y="80" fill="#8b95ab" font-size="10" text-anchor="middle">1</text>
+<rect x="304" y="30" width="60" height="36" fill="#233049" stroke="#5dc9e2"/><text x="334" y="53" fill="#e8ecf4" font-size="12" text-anchor="middle">C</text><text x="334" y="80" fill="#8b95ab" font-size="10" text-anchor="middle">2</text>
+<rect x="364" y="30" width="60" height="36" fill="#233049" stroke="#5dc9e2"/><text x="394" y="53" fill="#e8ecf4" font-size="12" text-anchor="middle">D</text><text x="394" y="80" fill="#8b95ab" font-size="10" text-anchor="middle">3</text>
+<text x="536" y="46" fill="#3ddc97" font-size="10" text-anchor="middle">адрес = начало + i×размер</text>
+<text x="536" y="62" fill="#3ddc97" font-size="10" text-anchor="middle">→ O(1), грузится в кэш</text>
+<line x1="24" y1="104" x2="616" y2="104" stroke="#2a3550" stroke-dasharray="4 4"/>
+<text x="300" y="126" fill="#5dc9e2" font-size="11.5" text-anchor="middle">СВЯЗНЫЙ СПИСОК — разбросаны, соединены ссылками</text>
+<rect x="120" y="140" width="70" height="30" fill="#233049" stroke="#3a4a6b"/><line x1="168" y1="140" x2="168" y2="170" stroke="#3a4a6b"/><text x="144" y="160" fill="#e8ecf4" font-size="11" text-anchor="middle">A</text>
+<rect x="300" y="162" width="70" height="30" fill="#233049" stroke="#3a4a6b"/><line x1="348" y1="162" x2="348" y2="192" stroke="#3a4a6b"/><text x="324" y="182" fill="#e8ecf4" font-size="11" text-anchor="middle">B</text>
+<rect x="470" y="140" width="70" height="30" fill="#233049" stroke="#3a4a6b"/><line x1="518" y1="140" x2="518" y2="170" stroke="#3a4a6b"/><text x="494" y="160" fill="#e8ecf4" font-size="11" text-anchor="middle">C</text>
+<path d="M168 155 C 230 155, 250 177, 300 177" fill="none" stroke="#8b95ab" marker-end="url(#al)"/>
+<path d="M348 177 C 410 177, 430 155, 470 155" fill="none" stroke="#8b95ab" marker-end="url(#al)"/>
+<text x="566" y="159" fill="#8b95ab" font-size="10">nil</text>
+<text x="300" y="212" fill="#8b95ab" font-size="10.5" text-anchor="middle">дойти до i-го = пройти цепочку → O(n); узлы разбросаны → плохой кэш</text>
+<defs><marker id="al" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<h4>Сложности — по операциям</h4>
+<table>
+<tr><th>Операция</th><th>Массив / слайс</th><th>Связный список</th></tr>
+<tr><td>Доступ по индексу</td><td>O(1)</td><td>O(n)</td></tr>
+<tr><td>Поиск значения</td><td>O(n)</td><td>O(n)</td></tr>
+<tr><td>Вставка/удаление в начало</td><td>O(n)</td><td>O(1)</td></tr>
+<tr><td>Вставка/удаление в середину</td><td>O(n)</td><td>O(1)*</td></tr>
+<tr><td>Кэш-локальность</td><td>отличная</td><td>плохая</td></tr>
+</table>
+<p style="color:#8b95ab;font-size:12px">* у списка O(1) — <b>только когда узел уже найден</b>; дойти до нужной позиции — O(n).</p>
+<h4>Что выбирать</h4>
+<ul>
+<li><b>Массив/слайс</b> — когда нужен произвольный доступ по индексу, проход по порядку, предсказуемый размер (почти всегда это он).</li>
+<li><b>Список</b> — когда часто вставляешь/удаляешь на концах или в известной позиции и не нужен доступ по индексу.</li>
+</ul>
+<p><b>В Go на практике:</b> почти всегда берут <b>слайс</b> (динамический массив, умеет расти). Из-за последовательной памяти он часто быстрее списка даже там, где «по O» список выигрывает — мешает плохая кэш-локальность и аллокации на каждый узел. Двусвязный список из stdlib — <code>container/list</code>, нужен редко (например, как часть <a href="#lru">LRU-кэша</a>).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «сложность доступа/вставки/поиска у каждого?»; «почему массив быстрее по факту, даже когда у списка вставка O(1)?» (кэш + аллокации); «когда бы взял список вместо слайса?»; «чем слайс отличается от массива в Go?» (слайс = ptr/len/cap над массивом, умеет расти).</div>
+</details>
+</div>
+
+
+<div class="card" id="hashtable">
+<h3>Хеш-таблица (hash table / hashmap)</h3>
+<div class="tldr"><b>Короткий ответ:</b> структура «ключ → значение» с доступом за <b>O(1) в среднем</b>: ключ прогоняют через <a href="#hashfunc">хеш-функцию</a>, число приводят к размеру массива → индекс «корзины» (bucket). Худший случай — <b>O(n)</b> при массовых коллизиях.</div>
+<p class="analogy">Гардероб: по номеру билета (хеш) сразу знаешь нужный крючок, не перебирая все пальто.</p>
+<details class="more"><summary>Механизм, коллизии, load factor и map в Go</summary>
+<h4>Как кладём и достаём</h4>
+<p><code>set(key, value)</code>: (1) хеш-функция превращает ключ в большое число; (2) число приводится к размеру массива (обычно остаток от деления) → индекс корзины; (3) кладём пару туда. <code>get(key)</code> — тот же путь до корзины, затем сравнение ключей внутри неё.</p>
+<svg class="ill" viewBox="0 0 640 175" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<rect x="16" y="66" width="60" height="30" rx="5" fill="#233049" stroke="#5dc9e2"/><text x="46" y="86" fill="#e8ecf4" font-size="12" text-anchor="middle">"cat"</text>
+<line x1="76" y1="81" x2="120" y2="81" stroke="#8b95ab" marker-end="url(#ht)"/><text x="98" y="72" fill="#8b95ab" font-size="9" text-anchor="middle">hash()</text>
+<rect x="122" y="66" width="92" height="30" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="168" y="86" fill="#c3ccdf" font-size="11" text-anchor="middle">9F3A21…</text>
+<line x1="214" y1="81" x2="256" y2="81" stroke="#8b95ab" marker-end="url(#ht)"/><text x="235" y="72" fill="#8b95ab" font-size="9" text-anchor="middle">% N</text>
+<rect x="258" y="66" width="36" height="30" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="276" y="86" fill="#e8ecf4" font-size="12" text-anchor="middle">2</text>
+<text x="390" y="30" fill="#8b95ab" font-size="10" text-anchor="middle">корзины (buckets)</text>
+<rect x="352" y="38" width="76" height="24" fill="#233049" stroke="#3a4a6b"/><text x="366" y="54" fill="#8b95ab" font-size="10">0</text>
+<rect x="352" y="62" width="76" height="24" fill="#233049" stroke="#3a4a6b"/><text x="366" y="78" fill="#8b95ab" font-size="10">1</text>
+<rect x="352" y="86" width="76" height="24" fill="#26324d" stroke="#3ddc97"/><text x="366" y="102" fill="#3ddc97" font-size="10">2</text>
+<rect x="352" y="110" width="76" height="24" fill="#233049" stroke="#3a4a6b"/><text x="366" y="126" fill="#8b95ab" font-size="10">3</text>
+<line x1="428" y1="98" x2="454" y2="98" stroke="#8b95ab" marker-end="url(#ht)"/>
+<rect x="456" y="85" width="70" height="26" rx="4" fill="#233049" stroke="#3a4a6b"/><text x="491" y="102" fill="#c3ccdf" font-size="10" text-anchor="middle">cat:1</text>
+<line x1="526" y1="98" x2="548" y2="98" stroke="#8b95ab" marker-end="url(#ht)"/>
+<rect x="550" y="85" width="70" height="26" rx="4" fill="#233049" stroke="#3a4a6b"/><text x="585" y="102" fill="#c3ccdf" font-size="10" text-anchor="middle">dog:2</text>
+<text x="500" y="150" fill="#ff6b6b" font-size="10" text-anchor="middle">коллизия: 2 ключа в одну корзину → цепочка (chaining)</text>
+<text x="155" y="130" fill="#8b95ab" font-size="10" text-anchor="middle">ключ → число → индекс корзины</text>
+<defs><marker id="ht" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<h4>Коллизии</h4>
+<p>Два разных ключа могут дать один индекс. Способы разрулить:</p>
+<ul>
+<li><b>Цепочки (chaining):</b> в корзине — список всех столкнувшихся пар (так в Go: overflow-бакеты).</li>
+<li><b>Открытая адресация (open addressing):</b> занято — ищем следующую свободную ячейку (линейное/квадратичное пробирование); все пары лежат в самом массиве.</li>
+</ul>
+<h4>Load factor и рехешинг</h4>
+<p><b>Load factor</b> = число элементов / число корзин — насколько таблица «набита». Чем выше, тем длиннее цепочки и медленнее операции. Порог превышен → <b>рехешинг</b>: создаём массив побольше и перекладываем всё (пересчитывая индексы). Ориентиры: для открытой адресации держат load factor &lt; ~0.7, для цепочек допускают ~1 и выше.</p>
+<h4>Эвакуация (инкрементальный рехешинг в Go)</h4>
+<p>Когда map решает вырасти, она <b>не</b> перекладывает всё сразу (это была бы длинная пауза). Заводит <b>новый</b> массив бакетов вдвое больше, а старый (<code>oldbuckets</code>) держит рядом. На каждой записи/удалении переносит <b>по чуть-чуть</b> — пару старых бакетов в новый; это и есть «эвакуация» (<code>growWork</code>). Пока идёт рост, чтение смотрит и в старый, и в новый массив. Два вида роста: <b>удвоение</b> (реально много элементов, load factor превышен) и <b>рост того же размера</b> (накопилось много overflow-бакетов от удалений → «уплотнить»).</p>
+<h4>Load factor в Go</h4>
+<p>Порог роста — load factor <b>~6.5</b> (в среднем 6.5 элементов на бакет из 8 слотов). Выше — цепочки длиннее, операции медленнее, поэтому запускается эвакуация в массив побольше.</p>
+<h4>Что может быть ключом</h4>
+<p>Ключ должен быть <b>comparable</b> (сравним через <code>==</code>):</p>
+<ul>
+<li><b>Можно:</b> числа, строки, <code>bool</code>, указатели, каналы, интерфейсы, а также <b>структуры и массивы</b> из сравнимых полей.</li>
+<li><b>Нельзя</b> (ошибка компиляции): <b>слайс, map, функция</b> — они не сравнимы.</li>
+<li>Тонкости: ключ типа <code>interface{}</code> компилируется, но если положить внутрь несравнимое (слайс) — <b>паника в рантайме</b>; <code>NaN</code> как ключ «не равен сам себе» → такой элемент потом не достать.</li>
+</ul>
+<h4>Порядок обхода и сортировка</h4>
+<p>Порядок итерации по map <b>намеренно случайный</b> (Go рандомизирует, чтобы никто не полагался на него). Чтобы обойти в <b>отсортированном</b> виде — собрать ключи в слайс, отсортировать, идти по нему:</p>
+<pre class="go">keys := make([]string, 0, len(m))
+for k := range m {
+    keys = append(keys, k)
+}
+sort.Strings(keys)
+for _, k := range keys {
+    fmt.Println(k, m[k])
+}</pre>
+<h4>Ещё особенности map в Go</h4>
+<ul>
+<li>Внутри — <b>цепочки</b>: бакет на <b>8</b> слотов + <code>tophash</code> (старшие биты хеша для быстрого сравнения) + overflow-бакеты; с Go <b>1.24</b> — <b>Swiss Tables</b>.</li>
+<li><b>nil-map:</b> читать можно (вернёт нулевое значение), <b>писать нельзя</b> (<code>panic: assignment to entry in nil map</code>) — нужен <code>make</code>.</li>
+<li><b>Comma-ok:</b> <code>v, ok := m[k]</code> — отличить «ключа нет» от «значение = нулевое».</li>
+<li>Значение map <b>не адресуемо</b>: <code>&amp;m[k]</code> нельзя; <code>m[k].field = x</code> для структуры-значения — ошибка (класть указатель или перезаписывать целиком).</li>
+<li>map передаётся <b>дёшево</b> — это указатель на <code>hmap</code>; изменения видны всем держателям.</li>
+<li><b>Не потокобезопасна:</b> конкурентная запись → <code>fatal error: concurrent map writes</code> (не паника, <code>recover</code> не спасёт). Лечится мьютексом или <code>sync.Map</code> (для read-mostly).</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «средняя и худшая сложность и <b>почему</b>?»; «что такое load factor и когда map растёт?» (~6.5); «как устроена эвакуация?» (инкрементально, oldbuckets→newbuckets по кусочку); «что может быть ключом, а что нет?» (comparable; не слайс/map/функция); «какой порядок обхода и как отсортировать?»; «почему падает при конкурентной записи и как чинить?».</div>
+</details>
+</div>
+
+
+<div class="card" id="hashfunc">
+<h3>Хеш-функция</h3>
+<div class="tldr"><b>Короткий ответ:</b> превращает данные любого размера в число/строку <b>фиксированной</b> длины. Одинаковый вход → одинаковый выход; хорошая хеш-функция распределяет значения <b>равномерно</b> и быстра.</div>
+<details class="more"><summary>Свойства, примеры и криптостойкость</summary>
+<h4>Свойства хорошей хеш-функции</h4>
+<ul>
+<li><b>Детерминированность</b> — тот же вход даёт тот же хеш.</li>
+<li><b>Равномерность</b> — значения раскиданы ровно, мало коллизий (лавинный эффект: смена одного бита входа сильно меняет хеш).</li>
+<li><b>Скорость</b> — для хеш-таблиц считается на каждый доступ.</li>
+</ul>
+<h4>Коллизия неизбежна</h4>
+<p>Входов бесконечно много, а хешей — конечное число, поэтому разные входы иногда дают один хеш. Задача не «убрать коллизии» (невозможно), а сделать их <b>редкими и равномерными</b>.</p>
+<h4>Какие бывают</h4>
+<ul>
+<li><b>Быстрые (не крипто):</b> FNV, crc32, xxhash — для хеш-таблиц и контрольных сумм.</li>
+<li><b>Криптографические:</b> sha256 — целостность, подписи; по хешу нельзя восстановить вход и трудно подобрать коллизию.</li>
+<li><b>Сломанные:</b> md5, sha1 — годятся только как быстрые контрольные суммы, <b>не</b> для безопасности.</li>
+<li><b>Для паролей:</b> <b>не</b> обычный хеш, а медленные bcrypt / argon2 + <b>соль</b> (случайная добавка против радужных таблиц).</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «какие свойства у хорошей хеш-функции?»; «почему коллизии неизбежны?»; «чем крипто-хеш отличается от обычного?»; «чем и как хешируют пароли и зачем соль?»; «можно ли md5 для паролей?» (нет).</div>
+</details>
+</div>
+
+
+<div class="card" id="tree">
+<h3>Деревья и B-tree</h3>
+<div class="tldr"><b>Короткий ответ:</b> дерево — иерархия «родитель → дети». <b>Сбалансированное</b> дерево поиска даёт O(log n) на поиск/вставку. <b>B-tree/B+-tree</b> — «широкие» деревья, оптимизированные под диск; на них построены индексы БД.</div>
+<p class="analogy">B-tree — оглавление толстой книги с разделами и подразделами: пара переходов — и ты на нужной странице.</p>
+<details class="more"><summary>BST, балансировка, B-tree vs B+-tree — со схемой</summary>
+<h4>Бинарное дерево поиска (BST)</h4>
+<p>У каждого узла ≤ 2 детей: слева меньшие значения, справа бо́льшие. Поиск идёт вниз, на каждом шаге отбрасывая половину → O(log n) — <b>если дерево сбалансировано</b>. Если вставлять уже отсортированные данные в наивный BST, он <b>вырождается в список</b> (O(n)). Балансировку держат <b>AVL</b> и <b>red-black</b> деревья (при вставке «поворачивают» узлы).</p>
+<h4>B-tree / B+-tree — под диск</h4>
+<p>У узла <b>много</b> детей (сотни). Дерево «низкое и широкое» — мало уровней, значит мало обращений к диску: одно чтение узла = одна страница диска.</p>
+<svg class="ill" viewBox="0 0 640 178" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="16" fill="#5dc9e2" font-size="11" text-anchor="middle">B-tree: «низкое и широкое» — много ключей в одном узле</text>
+<rect x="256" y="28" width="128" height="30" rx="4" fill="#26324d" stroke="#5dc9e2"/>
+<line x1="298" y1="28" x2="298" y2="58" stroke="#3a4a6b"/><line x1="342" y1="28" x2="342" y2="58" stroke="#3a4a6b"/>
+<text x="277" y="48" fill="#e8ecf4" font-size="12" text-anchor="middle">17</text><text x="363" y="48" fill="#e8ecf4" font-size="12" text-anchor="middle">42</text>
+<line x1="277" y1="58" x2="135" y2="92" stroke="#8b95ab"/><line x1="320" y1="58" x2="320" y2="92" stroke="#8b95ab"/><line x1="363" y1="58" x2="505" y2="92" stroke="#8b95ab"/>
+<rect x="70" y="92" width="130" height="28" rx="4" fill="#233049" stroke="#3a4a6b"/><text x="135" y="111" fill="#c3ccdf" font-size="11" text-anchor="middle">3 · 8 · 12</text>
+<rect x="255" y="92" width="130" height="28" rx="4" fill="#233049" stroke="#3a4a6b"/><text x="320" y="111" fill="#c3ccdf" font-size="11" text-anchor="middle">20 · 31 · 38</text>
+<rect x="440" y="92" width="130" height="28" rx="4" fill="#233049" stroke="#3a4a6b"/><text x="505" y="111" fill="#c3ccdf" font-size="11" text-anchor="middle">55 · 70 · 90</text>
+<text x="320" y="150" fill="#8b95ab" font-size="10.5" text-anchor="middle">узел = страница диска · за 3–4 чтения находим запись среди миллионов</text>
+<text x="320" y="168" fill="#8b95ab" font-size="10" text-anchor="middle">B+-tree: данные только в листьях, листья связаны в список → быстрые range-запросы</text>
+</svg>
+<p><b>Разница B-tree vs B+-tree:</b> в <b>B-tree</b> данные лежат в любом узле; в <b>B+-tree</b> — <b>только в листьях</b>, а внутренние узлы хранят лишь ключи-разделители, и <b>листья связаны в список</b> → удобны <b>range-запросы</b> и упорядоченный обход. Именно B+-tree — стандарт для <a href="#index">индексов БД</a> (Postgres, MySQL): за 3–4 чтения находишь запись среди миллионов.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «сложность поиска в BST и когда она портится?» (вырождение в список); «как балансируют?» (AVL/red-black); «почему в БД именно B-tree, а не BST?» (низкое дерево = мало чтений с диска, узел = страница); «B-tree vs B+-tree?» (данные в листьях + связанные листья → range-запросы); «B-tree vs хеш-индекс?» (хеш — только точное равенство, B-tree — ещё диапазоны и сортировка).</div>
+</details>
+</div>
+
+
+<div class="card" id="heap">
+<h3>Куча (binary heap) — структура данных</h3>
+<div class="tldr"><b>Короткий ответ:</b> дерево, где родитель всегда ≥ (max-heap) или ≤ (min-heap) детей. Минимум/максимум — в корне: посмотреть O(1), извлечь/добавить O(log n). <b>Не путать</b> с «кучей» как областью памяти.</div>
+<p class="analogy">Пирамида, где начальник всегда «главнее» подчинённых; на вершине — самый главный.</p>
+<details class="more"><summary>Устройство, операции, применения — со схемой</summary>
+<h4>Как устроена</h4>
+<p>Хранится в обычном <b>массиве</b> и читается как двоичное дерево: у узла с индексом <code>i</code> дети — <code>2i+1</code> и <code>2i+2</code>, родитель — <code>(i-1)/2</code>. Дерево всегда «полное» (заполняется по уровням), поэтому высота ~log n.</p>
+<svg class="ill" viewBox="0 0 640 172" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="300" y="16" fill="#5dc9e2" font-size="11" text-anchor="middle">min-heap: родитель &#8804; детей → минимум в корне</text>
+<line x1="300" y1="52" x2="220" y2="90" stroke="#8b95ab"/><line x1="300" y1="52" x2="380" y2="90" stroke="#8b95ab"/>
+<line x1="220" y1="106" x2="175" y2="140" stroke="#8b95ab"/><line x1="220" y1="106" x2="265" y2="140" stroke="#8b95ab"/>
+<circle cx="300" cy="40" r="19" fill="#26324d" stroke="#5dc9e2" stroke-width="2"/><text x="300" y="45" fill="#e8ecf4" font-size="12" text-anchor="middle">1</text>
+<circle cx="220" cy="98" r="19" fill="#233049" stroke="#3a4a6b"/><text x="220" y="103" fill="#c3ccdf" font-size="12" text-anchor="middle">3</text>
+<circle cx="380" cy="98" r="19" fill="#233049" stroke="#3a4a6b"/><text x="380" y="103" fill="#c3ccdf" font-size="12" text-anchor="middle">2</text>
+<circle cx="175" cy="150" r="17" fill="#233049" stroke="#3a4a6b"/><text x="175" y="155" fill="#c3ccdf" font-size="11" text-anchor="middle">7</text>
+<circle cx="265" cy="150" r="17" fill="#233049" stroke="#3a4a6b"/><text x="265" y="155" fill="#c3ccdf" font-size="11" text-anchor="middle">5</text>
+<text x="510" y="70" fill="#8b95ab" font-size="10.5" text-anchor="middle">массив: [1,3,2,7,5]</text>
+<text x="510" y="88" fill="#8b95ab" font-size="10.5" text-anchor="middle">дети узла i → 2i+1, 2i+2</text>
+<text x="510" y="112" fill="#3ddc97" font-size="10" text-anchor="middle">push: в конец + всплыть</text>
+<text x="510" y="128" fill="#3ddc97" font-size="10" text-anchor="middle">pop: корень + просеять вниз</text>
+</svg>
+<h4>Операции</h4>
+<ul>
+<li><b>push (вставка):</b> кладём элемент в конец массива и «всплываем» вверх, меняясь с родителем, пока порядок не восстановится — O(log n).</li>
+<li><b>pop (извлечь корень):</b> берём корень, ставим на его место последний элемент и «просеиваем» вниз, меняясь с меньшим/большим ребёнком — O(log n).</li>
+<li><b>peek (посмотреть min/max):</b> это корень — O(1).</li>
+</ul>
+<h4>Где применяют</h4>
+<p><b>Очередь с приоритетом</b> (priority queue), <a href="#heapsort">heapsort</a>, поиск <b>k наибольших/наименьших</b>, планировщики задач и таймеры, алгоритм Дейкстры (кратчайшие пути). В Go — пакет <code>container/heap</code> (реализуешь интерфейс <code>Len/Less/Swap/Push/Pop</code>).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «чем куча-структура отличается от кучи-памяти?»; «как массив представляет кучу (формулы индексов)?»; «сложность вставки/извлечения/просмотра?»; «как найти k наибольших за O(n·log k)?» (min-heap размера k); «где куча в реальных задачах?» (priority queue, Дейкстра, таймеры).</div>
+</details>
+</div>
+
+
+<div class="card" id="lru">
+<h3>LRU-кэш</h3>
+<div class="tldr"><b>Короткий ответ:</b> кэш фиксированного размера, который при переполнении выбрасывает <b>давно не используемый</b> элемент (Least Recently Used). Все операции — <b>O(1)</b>.</div>
+<p class="analogy">Стопка бумаг на столе: взял лист — кладёшь наверх; места нет — выбрасываешь самый нижний (давно не трогали).</p>
+<details class="more"><summary>Как устроен (частая задача на собесе) — со схемой</summary>
+<h4>Хеш-таблица + двусвязный список</h4>
+<p>Комбинируют две структуры, потому что по отдельности каждая чего-то не умеет за O(1):</p>
+<ul>
+<li><b><a href="#hashtable">Хеш-таблица</a></b> <code>ключ → узел</code>: мгновенный доступ к узлу за O(1).</li>
+<li><b>Двусвязный <a href="#array">список</a></b>: хранит элементы по «свежести» (хвост — недавно использованные, голова — старые) и позволяет вырвать/переставить узел за O(1) — для этого и нужны обе ссылки.</li>
+</ul>
+<svg class="ill" viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="72" y="20" fill="#5dc9e2" font-size="10.5" text-anchor="middle">хеш-таблица</text>
+<rect x="20" y="28" width="104" height="112" rx="6" fill="#171e2e" stroke="#3a4a6b"/>
+<text x="34" y="50" fill="#c3ccdf" font-size="10">"a" &#8594;</text><text x="34" y="76" fill="#c3ccdf" font-size="10">"b" &#8594;</text><text x="34" y="102" fill="#c3ccdf" font-size="10">"c" &#8594;</text><text x="34" y="128" fill="#c3ccdf" font-size="10">"d" &#8594;</text>
+<text x="400" y="20" fill="#5dc9e2" font-size="10.5" text-anchor="middle">двусвязный список (по свежести)</text>
+<rect x="176" y="66" width="80" height="42" rx="5" fill="#3a2330" stroke="#ff6b6b"/><text x="216" y="86" fill="#e8ecf4" font-size="12" text-anchor="middle">a</text><text x="216" y="100" fill="#ff6b6b" font-size="8" text-anchor="middle">LRU (голова)</text>
+<rect x="288" y="66" width="80" height="42" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="328" y="91" fill="#e8ecf4" font-size="12" text-anchor="middle">b</text>
+<rect x="400" y="66" width="80" height="42" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="440" y="91" fill="#e8ecf4" font-size="12" text-anchor="middle">c</text>
+<rect x="512" y="66" width="80" height="42" rx="5" fill="#22402f" stroke="#3ddc97"/><text x="552" y="86" fill="#e8ecf4" font-size="12" text-anchor="middle">d</text><text x="552" y="100" fill="#3ddc97" font-size="8" text-anchor="middle">MRU (хвост)</text>
+<line x1="256" y1="87" x2="288" y2="87" stroke="#8b95ab"/><line x1="368" y1="87" x2="400" y2="87" stroke="#8b95ab"/><line x1="480" y1="87" x2="512" y2="87" stroke="#8b95ab"/>
+<line x1="124" y1="47" x2="196" y2="70" stroke="#5a4a7b" stroke-dasharray="3 3"/>
+<line x1="124" y1="73" x2="308" y2="70" stroke="#5a4a7b" stroke-dasharray="3 3"/>
+<text x="330" y="158" fill="#8b95ab" font-size="10.5" text-anchor="middle">обратились к ключу → узел переносим в хвост (MRU)</text>
+<text x="330" y="176" fill="#ff6b6b" font-size="10.5" text-anchor="middle">кэш полон → выбрасываем голову (LRU) — всё за O(1)</text>
+</svg>
+<h4>Операции</h4>
+<ul>
+<li><b>get(key):</b> нашли узел через map → переносим его в хвост (стал «свежим») → вернули значение.</li>
+<li><b>put(key, val):</b> есть — обновили и в хвост; нет — создали узел в хвосте и записали в map; если превысили размер — удалили <b>голову</b> (самый старый) и стёрли её ключ из map.</li>
+</ul>
+<p><b>В Go:</b> в stdlib готового LRU нет — берут <code>hashicorp/golang-lru</code> либо пишут сами на <code>map</code> + <code>container/list</code>. Это <b>классическая задача на собесе</b> — «реализуй LRU с O(1)».</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «реализуй LRU за O(1)» (map + двусвязный список); «почему именно двусвязный список?» (удалить узел из середины за O(1) нужны обе ссылки); «зачем тут ещё и map?» (найти узел за O(1)); «что вытесняем при переполнении?» (голову — LRU); «чем LRU отличается от LFU?» (LFU — по частоте, а не по свежести).</div>
+</details>
+</div>
+
+
+<div class="card" id="ascii">
+<h3>Биты, байты, ASCII</h3>
+<div class="tldr"><b>TL;DR:</b> компьютер хранит всё числами. <b>Бит</b> — 0 или 1; <b>байт</b> — 8 бит (256 значений). Кодировка — договор, какое число обозначает какой символ. ASCII — старейший такой договор.</div>
+<p><b>ASCII</b> (1963) кодирует 128 символов (латиница, цифры, знаки) числами 0–127, помещаясь в 1 байт. Например, 'A' = 65, 'a' = 97. Проблема: нет места для кириллицы, иероглифов, эмодзи.</p>
+</div>
+
+<div class="card" id="unicode">
+<h3>Unicode и code point</h3>
+<div class="tldr"><b>TL;DR:</b> Unicode — единый каталог <b>всех</b> символов мира (буквы, иероглифы, эмодзи). Каждому символу присвоен номер — <b>code point</b> (например, U+0041 = 'A', U+1F600 = 😀).</div>
+<p>Unicode — это <i>таблица соответствий</i> «символ ↔ номер», а не способ хранения в байтах. Как именно записать эти номера в память — решает <b>кодировка</b> (UTF-8, UTF-16, UTF-32). В Go тип <code>rune</code> = один code point (int32).</p>
+</div>
+
+<div class="card" id="utf8">
+<h3>UTF-8 — как символы превращаются в байты</h3>
+<div class="tldr"><b>TL;DR:</b> UTF-8 — самый популярный способ записать <a href="#unicode">Unicode</a> в байты. Гениальность в том, что частые символы (латиница) занимают 1 байт, редкие — 2–4 байта, и старый ASCII-текст остаётся валидным UTF-8.</div>
+<p><b>Переменная длина:</b> символ занимает от 1 до 4 байт:</p>
+<ul>
+<li>латиница/цифры (ASCII) — <b>1 байт</b> (полная совместимость с ASCII!);</li>
+<li>кириллица, большинство европейских — <b>2 байта</b>;</li>
+<li>иероглифы — <b>3 байта</b>;</li>
+<li>эмодзи, редкие знаки — <b>4 байта</b>.</li>
+</ul>
+<p>По первым битам байта понятно, сколько байт занимает символ и где он начинается — поэтому по UTF-8 можно идти вперёд/назад без таблиц.</p>
+<p><b>Почему это важно для Go:</b> строка — это <b>байты</b> в UTF-8. Поэтому <code>len("привет")</code> = 12 (по 2 байта на букву), а <b>символов</b> 6. Чтобы считать символы — <code>utf8.RuneCountInString</code> или пройтись <code>range</code> (он декодирует руны). Авторы Go Роб Пайк и Кен Томпсон — соавторы самого UTF-8, отсюда родная поддержка.</p>
+<p class="analogy">Как азбука Морзе: частые буквы — короткие сигналы, редкие — длинные; поток читается однозначно.</p>
+<p class="see">В банке: строки, руны, байты, итерация по строке.</p>
+</div>
+
+<!-- ==================== ПАМЯТЬ и ОС ==================== -->
+<h2 class="cat" id="c-mem">Память и ОС</h2>
+
+<div class="card" id="stackheap">
+<h3>Стек и куча (области памяти)</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>стек</b> — быстрая память под локальные переменные функции: кладётся при входе, выбрасывается при выходе (без уборки). <b>Куча</b> — общее хранилище для данных, которые должны жить дольше вызова; за ними убирает сборщик мусора (<a href="#gc">GC</a>), поэтому она медленнее. Куда попадёт конкретная переменная, в Go решает компилятор через <b>escape analysis</b>: не «убегает» из функции → стек, «убегает» → куча.</div>
+<p class="analogy">Стек — стопка тарелок (берём/кладём только сверху, всё убирается разом). Куча — большой склад, где вещи лежат где попало и кто-то (GC) периодически вывозит мусор.</p>
+<details class="more"><summary>Подробный конспект — с примерами и схемами</summary>
+<h4>Стек — «стопка тарелок»</h4>
+<p>На каждый вызов функции сверху кладётся её <b>фрейм</b> (аргументы, локальные переменные, адрес возврата). Вышли из функции — фрейм снимается. Работает по принципу <b>LIFO</b> (последним пришёл — первым ушёл): выделить память — просто сдвинуть указатель (<code>O(1)</code>), освободить — сдвинуть обратно, и вся память функции уходит <b>разом</b>, без всякого GC. Свой стек у <b>каждой</b> горутины.</p>
+<svg class="ill" viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<line x1="320" y1="40" x2="320" y2="234" stroke="#2a3550" stroke-dasharray="4 4"/>
+<text x="130" y="26" fill="#5dc9e2" font-size="15" text-anchor="middle" font-weight="700">СТЕК</text>
+<text x="130" y="44" fill="#8b95ab" font-size="10.5" text-anchor="middle">кладём/снимаем только сверху (LIFO)</text>
+<rect x="50" y="60" width="170" height="34" rx="6" fill="#26324d" stroke="#5dc9e2"/>
+<text x="135" y="81" fill="#e8ecf4" font-size="12" text-anchor="middle">g() &#8592; выполняется</text>
+<rect x="50" y="100" width="170" height="34" rx="6" fill="#233049" stroke="#3a4a6b"/>
+<text x="135" y="121" fill="#c3ccdf" font-size="12" text-anchor="middle">f()</text>
+<rect x="50" y="140" width="170" height="34" rx="6" fill="#233049" stroke="#3a4a6b"/>
+<text x="135" y="161" fill="#c3ccdf" font-size="12" text-anchor="middle">main()</text>
+<path d="M34 62 L34 172" stroke="#8b95ab" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="26" y="120" fill="#8b95ab" font-size="10" transform="rotate(-90 26 120)" text-anchor="middle">растёт вниз</text>
+<text x="130" y="196" fill="#8b95ab" font-size="10.5" text-anchor="middle">аллокация = сдвиг указателя, O(1)</text>
+<text x="130" y="214" fill="#3ddc97" font-size="10.5" text-anchor="middle">вышли из функции — всё убралось разом</text>
+<text x="480" y="26" fill="#5dc9e2" font-size="15" text-anchor="middle" font-weight="700">КУЧА</text>
+<text x="480" y="44" fill="#8b95ab" font-size="10.5" text-anchor="middle">живёт дольше вызова</text>
+<rect x="360" y="62" width="64" height="30" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="392" y="81" fill="#c3ccdf" font-size="11" text-anchor="middle">str</text>
+<rect x="452" y="58" width="52" height="24" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="478" y="74" fill="#c3ccdf" font-size="11" text-anchor="middle">*User</text>
+<rect x="546" y="66" width="70" height="42" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="581" y="91" fill="#c3ccdf" font-size="11" text-anchor="middle">[]byte</text>
+<rect x="378" y="108" width="92" height="34" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="424" y="129" fill="#c3ccdf" font-size="11" text-anchor="middle">map[...]</text>
+<rect x="500" y="120" width="56" height="28" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="528" y="139" fill="#c3ccdf" font-size="11" text-anchor="middle">obj</text>
+<text x="480" y="176" fill="#ffd166" font-size="11" text-anchor="middle">GC периодически вывозит мусор</text>
+<text x="480" y="210" fill="#8b95ab" font-size="10.5" text-anchor="middle">объекты разбросаны · медленнее стека</text>
+<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<h4>Стек горутины умеет расти</h4>
+<p>Стек горутины стартует всего с <b>~2 КБ</b> — поэтому в Go можно держать <b>миллионы</b> горутин (10 000 ≈ 20 МБ на старте), тогда как у потока ОС стек 1–8 МБ и их хватает лишь на тысячи. Если стека не хватило, рантайм выделяет <b>вдвое больший</b> блок, <b>копирует</b> туда старый и <b>чинит все указатели</b> (это состояние <code>_Gcopystack</code>); при желании стек и сжимается.</p>
+<svg class="ill" viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<rect x="24" y="42" width="86" height="44" rx="6" fill="#233049" stroke="#3a4a6b"/><text x="67" y="69" fill="#e8ecf4" font-size="13" text-anchor="middle">2 КБ</text>
+<text x="67" y="104" fill="#8b95ab" font-size="10" text-anchor="middle">старт горутины</text>
+<path d="M118 64 L168 64" stroke="#8b95ab" stroke-width="1.5" marker-end="url(#ar2)"/><text x="143" y="54" fill="#8b95ab" font-size="9.5" text-anchor="middle">не хватило</text>
+<rect x="176" y="34" width="120" height="60" rx="6" fill="#26324d" stroke="#5dc9e2"/><text x="236" y="60" fill="#e8ecf4" font-size="13" text-anchor="middle">4 КБ</text><text x="236" y="78" fill="#8b95ab" font-size="9.5" text-anchor="middle">копия старого</text>
+<text x="236" y="112" fill="#8b95ab" font-size="10" text-anchor="middle">×2 + копируем + чиним указатели</text>
+<path d="M304 64 L354 64" stroke="#8b95ab" stroke-width="1.5" marker-end="url(#ar2)"/>
+<rect x="362" y="26" width="150" height="76" rx="6" fill="#233049" stroke="#3a4a6b"/><text x="437" y="60" fill="#e8ecf4" font-size="13" text-anchor="middle">8 КБ ...</text><text x="437" y="80" fill="#8b95ab" font-size="9.5" text-anchor="middle">и дальше по надобности</text>
+<path d="M520 64 L560 64" stroke="#8b95ab" stroke-width="1.5" marker-end="url(#ar2)"/>
+<text x="600" y="60" fill="#ff6b6b" font-size="11" text-anchor="middle">~1 ГБ</text><text x="600" y="76" fill="#8b95ab" font-size="9" text-anchor="middle">потолок</text>
+<defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<p><span style="color:#8b95ab;font-size:12.5px">Историческая справка: до Go 1.3 стек был <b>сегментным</b> (цепочка 4-КБ кусочков), но от этого ушли из-за «hot split» (дёрганья рост/сжатие на границе) и плохой локальности кэша — теперь <b>непрерывный стек с ростом копированием</b>. Потолок ~1 ГБ (64-бит) / 250 МБ (32-бит); упёрлись → <code>fatal error: stack overflow</code>, обычно из-за бесконечной рекурсии.</span></p>
+<h4>Куча — «склад» под управлением рантайма</h4>
+<p>Куда сложнее: организована уровнями — <b>arena</b> (крупные блоки, взятые у ОС) → <b>page</b> (по 8 КБ) → <b>span</b> (участки под объекты одного <b>размерного класса</b>). Мелкие объекты (≤ 32 КБ) нарезаются из span-ов, крупные идут отдельными блоками. Когда нужна память: сначала ищем свободный кусок в <b>free list</b> нужного размера; нет — берём новый span; совсем нет — просим у ОС (<code>mmap</code>). А убирает ненужное <a href="#gc">GC</a> — отсюда и накладные расходы.</p>
+<h4>Где живёт переменная? Escape analysis</h4>
+<p>Компилятор смотрит, «убегает» ли переменная за пределы функции. Не убегает → кладёт в <b>стек</b> (дёшево и безопасно); убегает → вынужден положить в <b>кучу</b>. Компилятор <b>предпочитает стек</b> и уводит в кучу только когда обязан. Посмотреть его решения: <code>go build -gcflags=&#39;-m&#39; main.go</code> (<code>-m=2</code> — подробнее).</p>
+<pre class="go">func stackOK() int {
+    x := 42       // не убегает → стек
+    return x
+}
+
+func escapes() *int {
+    x := 42       // &amp;x переживёт функцию → куча
+    return &amp;x
+}
+// go build -gcflags=-m → во второй функции: "moved to heap: x"</pre>
+<p><b>Что чаще всего уводит в кучу:</b></p>
+<ul>
+<li><b>Возврат указателя на локальную переменную</b> (<code>return &amp;x</code>) — она должна пережить функцию.</li>
+<li><b>Упаковка в интерфейс</b> — например <code>fmt.Println(x)</code> (параметр <code>any</code>) часто вызывает escape.</li>
+<li><b>Захват замыканием</b>, которое живёт дольше функции.</li>
+<li><b>Передача указателя туда, где его сохранят</b> (в структуру, канал, глобальную переменную).</li>
+<li>Объект <b>неизвестного/слишком большого размера</b> (например слайс, растущий в рантайме).</li>
+</ul>
+<h4>Почему стек быстрее кучи</h4>
+<table>
+<tr><th></th><th>Стек</th><th>Куча</th></tr>
+<tr><td>Аллокация</td><td>O(1), сдвиг указателя</td><td>дороже: поиск блока в free list</td></tr>
+<tr><td>Освобождение</td><td>авто (LIFO)</td><td>через GC (паузы и работа)</td></tr>
+<tr><td>Кэш CPU</td><td>локально, горячо</td><td>объекты разбросаны</td></tr>
+<tr><td>Фрагментация</td><td>нет</td><td>возможна</td></tr>
+</table>
+<h4>Как беречь GC (важно под нагрузкой)</h4>
+<p>Меньше аллокаций в куче = быстрее код и меньше пауз GC: держать данные на стеке (не плодить лишние указатели), переиспользовать объекты (<a href="#gc">sync.Pool</a>), меньше временных объектов в горячих циклах, заранее задавать ёмкость слайсов и мап (<code>make([]T, 0, n)</code>).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «где живёт эта переменная — в стеке или куче?»; «что такое escape analysis и как проверить?»; «уедет ли <code>return &amp;x</code> в кучу?»; «почему стек быстрее?»; «с какого размера стартует стек горутины и как растёт?»; «почему в Go можно миллион горутин, а потоков ОС — тысячи?».</div>
+</details>
+</div>
+
+
+<div class="card" id="virtmem">
+<h3>Виртуальная память и страницы</h3>
+<div class="tldr"><b>TL;DR:</b> каждая программа думает, что владеет всей памятью — это <b>виртуальная память</b>. ОС незаметно переводит её адреса в реальные (физические), разбивая память на <b>страницы</b> (обычно 4 КБ).</div>
+<p><b>Зачем:</b> (1) изоляция — процессы не видят память друг друга (безопасность); (2) можно дать больше памяти, чем есть физически (лишнее — на диск, «своп»); (3) защита участков (только чтение / нельзя исполнять).</p>
+<p><b>Страница (page)</b> — минимальный блок для этого перевода. Таблица страниц хранит соответствие «виртуальная страница → физическая». <b>Своп</b> — выгрузка редких страниц на диск, когда RAM не хватает.</p>
+<p class="analogy">Виртуальные адреса — как номера в гостинице; ресепшн (ОС) знает, за какой реальной дверью какой гость, и может переселять их незаметно.</p>
+</div>
+
+<div class="card" id="tlb">
+<h3>TLB и hugepages</h3>
+<div class="tldr"><b>TL;DR:</b> <b>TLB</b> — маленький сверхбыстрый кэш процессора, который помнит недавние переводы «виртуальный адрес → физический», чтобы не лазить в таблицу страниц каждый раз.</div>
+<p>Каждое обращение к памяти требует перевода адреса (см. <a href="#virtmem">виртуальная память</a>). Если бы это был каждый раз поиск в таблице — было бы медленно. <b>TLB (Translation Lookaside Buffer)</b> кэширует последние переводы; при работе с близкими адресами почти всегда «попадание» → быстро.</p>
+<p><b>Hugepages</b> — большие страницы (2 МБ вместо 4 КБ). Меньше страниц → меньше записей → меньше промахов TLB. Полезно тяжёлым программам (базы данных), которые работают с гигабайтами.</p>
+</div>
+
+<div class="card" id="cache">
+<h3>Кэш процессора и локальность</h3>
+<div class="tldr"><b>TL;DR:</b> процессор намного быстрее RAM, поэтому держит рядом маленький сверхбыстрый <b>кэш</b> (L1/L2/L3). Данные, лежащие <b>рядом</b> в памяти, читаются пачками — это «кэш-локальность».</div>
+<p>Обращение к RAM в разы медленнее, чем к кэшу. Процессор подгружает данные «линиями» (обычно 64 байта): взял один элемент — соседние уже в кэше. Поэтому <b>массив</b> (элементы подряд) перебирается быстрее <b>связного списка</b> (элементы разбросаны), даже если по Big-O они равны.</p>
+<p class="analogy">Держать нужные книги на столе (кэш), а не бегать в дальний архив (RAM) за каждой.</p>
+<p class="see">Почему <code>[]T</code> обычно быстрее <code>[]*T</code>, а линейный поиск по массиву — на удивление шустрый.</p>
+</div>
+
+<div class="card" id="gc">
+<h3>Сборка мусора (GC): mark-sweep и трёхцветная пометка</h3>
+<div class="tldr"><b>Короткий ответ:</b> сборщик мусора сам освобождает память, до которой из программы больше <b>нельзя дотянуться</b>. Go использует <b>конкурентный</b> (работает вместе с приложением) <b>mark-and-sweep</b> с <b>трёхцветной</b> пометкой; паузы stop-the-world — доли миллисекунды. GC в Go <b>не поколенческий</b>.</div>
+<p class="analogy">Уборка на вечеринке, не выгоняя гостей: помечаем, кто ещё нужен (за кого держатся), остальное убираем; охранник на входе (write barrier) следит, чтобы гости не прятали друг друга.</p>
+<details class="more"><summary>Подробный конспект — с примерами и схемами</summary>
+<h4>Mark &amp; Sweep — в двух словах</h4>
+<p><b>Mark (пометка):</b> начиная с «корней» (локальные переменные горутин, глобальные переменные), GC обходит все ссылки и помечает всё <b>достижимое</b> как живое. <b>Sweep (очистка):</b> всё, что осталось непомеченным, — мусор, его память возвращается в кучу.</p>
+<h4>Трёхцветная пометка</h4>
+<p>Способ вести пометку, <b>не останавливая</b> программу надолго. Каждый объект красится в один из трёх цветов:</p>
+<ul>
+<li><b>белый</b> — ещё не посещён (кандидат в мусор);</li>
+<li><b>серый</b> — найден живым, но его ссылки ещё не просмотрены (это «фронт» обхода);</li>
+<li><b>чёрный</b> — и сам, и все его ссылки просмотрены (точно живой).</li>
+</ul>
+<p>Сначала все белые, корни красим в серый. Дальше: берём серый объект → красим его ссылки в серый, а его самого — в чёрный. Повторяем, пока серые не кончатся. Оставшиеся <b>белые</b> недостижимы → их сметаем.</p>
+<svg class="ill" viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<rect x="18" y="98" width="96" height="46" rx="6" fill="#233049" stroke="#5dc9e2"/>
+<text x="66" y="118" fill="#e8ecf4" font-size="11" text-anchor="middle">корни</text>
+<text x="66" y="134" fill="#8b95ab" font-size="9" text-anchor="middle">стек, глобали</text>
+<!-- живые: чёрные -->
+<line x1="114" y1="112" x2="176" y2="80" stroke="#8b95ab" stroke-width="1.4" marker-end="url(#gm)"/>
+<line x1="114" y1="128" x2="176" y2="150" stroke="#8b95ab" stroke-width="1.4" marker-end="url(#gm)"/>
+<circle cx="196" cy="76" r="20" fill="#111626" stroke="#e8ecf4" stroke-width="2"/><text x="196" y="80" fill="#e8ecf4" font-size="11" text-anchor="middle">ч</text>
+<circle cx="196" cy="156" r="20" fill="#111626" stroke="#e8ecf4" stroke-width="2"/><text x="196" y="160" fill="#e8ecf4" font-size="11" text-anchor="middle">ч</text>
+<!-- чёрный -> серый (фронт) -->
+<line x1="216" y1="76" x2="288" y2="76" stroke="#8b95ab" stroke-width="1.4" marker-end="url(#gm)"/>
+<circle cx="308" cy="76" r="20" fill="#8b95ab" stroke="#c3ccdf" stroke-width="2"/><text x="308" y="80" fill="#11161f" font-size="11" text-anchor="middle">с</text>
+<line x1="216" y1="156" x2="288" y2="156" stroke="#8b95ab" stroke-width="1.4" marker-end="url(#gm)"/>
+<circle cx="308" cy="156" r="20" fill="#8b95ab" stroke="#c3ccdf" stroke-width="2"/><text x="308" y="160" fill="#11161f" font-size="11" text-anchor="middle">с</text>
+<!-- белые: недостижимы -->
+<circle cx="470" cy="70" r="20" fill="#eef2fa" stroke="#eef2fa"/><text x="470" y="74" fill="#11161f" font-size="11" text-anchor="middle">б</text>
+<circle cx="540" cy="110" r="20" fill="#eef2fa" stroke="#eef2fa"/><text x="540" y="114" fill="#11161f" font-size="11" text-anchor="middle">б</text>
+<circle cx="470" cy="150" r="20" fill="#eef2fa" stroke="#eef2fa"/><text x="470" y="154" fill="#11161f" font-size="11" text-anchor="middle">б</text>
+<line x1="452" y1="88" x2="490" y2="132" stroke="#5a4a5a" stroke-width="1.2" stroke-dasharray="3 3"/>
+<text x="505" y="188" fill="#ff6b6b" font-size="11" text-anchor="middle">никто не держит → мусор</text>
+<!-- легенда -->
+<text x="20" y="212" fill="#e8ecf4" font-size="10.5">● чёрный — живой, ссылки просмотрены</text>
+<text x="20" y="230" fill="#8b95ab" font-size="10.5">● серый — живой, ссылки ещё не обошли · ○ белый — недостижим (удаляется)</text>
+<defs><marker id="gm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<h4>Почему нужен write barrier</h4>
+<p>GC работает <i>одновременно</i> с приложением, поэтому программа может «на ходу» переставить указатель и спрятать живой объект от сборщика (записать ссылку из уже <b>чёрного</b> в <b>белый</b>, который сборщик считает мусором). <b>Write barrier</b> — крохотный перехватчик записи указателей: он подкрашивает такой объект в серый, поддерживая инвариант «чёрный не ссылается на белый напрямую». Go использует <b>гибридный</b> write barrier (с Go 1.8) — за счёт него паузы стали суб-миллисекундными.</p>
+<h4>Фазы и stop-the-world</h4>
+<p>Почти вся работа идёт <b>вместе с приложением</b>. Полностью замереть (STW) нужно лишь на короткие моменты: включить write barrier в начале и согласовать результат в конце пометки (mark termination). Очистка (sweep) тоже конкурентная/ленивая.</p>
+<svg class="ill" viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="22" fill="#8b95ab" font-size="10.5" text-anchor="middle">приложение работает почти всё время; красное — короткие паузы stop-the-world</text>
+<rect x="40" y="44" width="16" height="34" fill="#ff6b6b"/>
+<rect x="58" y="44" width="250" height="34" rx="3" fill="#22402f" stroke="#3ddc97"/>
+<text x="183" y="65" fill="#3ddc97" font-size="11" text-anchor="middle">конкурентная пометка (mark)</text>
+<rect x="310" y="44" width="16" height="34" fill="#ff6b6b"/>
+<rect x="328" y="44" width="232" height="34" rx="3" fill="#1c2f45" stroke="#5dc9e2"/>
+<text x="444" y="65" fill="#5dc9e2" font-size="11" text-anchor="middle">конкурентная очистка (sweep)</text>
+<text x="48" y="96" fill="#ff6b6b" font-size="9" text-anchor="middle">STW</text>
+<text x="318" y="96" fill="#ff6b6b" font-size="9" text-anchor="middle">STW</text>
+<text x="600" y="66" fill="#8b95ab" font-size="10" text-anchor="middle">→ время</text>
+</svg>
+<h4>Чем настраивается</h4>
+<ul>
+<li><b><code>GOGC</code></b> (по умолчанию <b>100</b>): GC запускается, когда куча выросла на GOGC% с прошлой сборки (т.е. примерно удвоилась). Больше значение → реже сборки, но больше памяти; <code>GOGC=off</code> выключает GC.</li>
+<li><b><code>GOMEMLIMIT</code></b> (с Go 1.19): мягкий лимит памяти — GC начинает работать активнее, чтобы удержаться под ним (спасает от OOM в контейнере).</li>
+</ul>
+<h4>Green Tea GC (по умолчанию с Go 1.26)</h4>
+<p>Тот же mark-sweep, но умнее сканирование памяти.</p>
+<ul>
+<li><b>Было:</b> GC обходил объекты «по графу» — по одному, прыгая по всей памяти вслед за указателями. Соседние объекты лежат далеко → постоянные <b>кэш-промахи</b>, процессор простаивает в ожидании данных из RAM (до 35% времени сканирования).</li>
+<li><b>Стало:</b> сканирование идёт локальными блоками — <b>спанами</b> по 8 КБ; объекты блока обрабатываются пачкой, данные лежат рядом → меньше кэш-промахов, лучше на многих ядрах (и векторные инструкции на новых CPU). Итог — на <b>10–40% меньше</b> накладных расходов GC.</li>
+</ul>
+<h4>Как уменьшить нагрузку на GC</h4>
+<p>Меньше аллокаций в куче → реже и короче сборки: держать данные на <a href="#stackheap">стеке</a> (не плодить лишние указатели), переиспользовать объекты (<code>sync.Pool</code>), меньше временных объектов в горячих циклах, заранее задавать ёмкость слайсов/мап.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «какой у Go сборщик мусора и как он работает?» (конкурентный tri-color mark-sweep, <b>не поколенческий</b>); «что такое трёхцветная пометка?»; «зачем нужен write barrier?»; «что такое stop-the-world и сколько длится?» (доли мс); «чем настраивается GC?» (<code>GOGC</code>, <code>GOMEMLIMIT</code>); «как уменьшить нагрузку на GC?».</div>
+</details>
+</div>
+
+
+<div class="card" id="syscall">
+<h3>Процесс, поток, системный вызов</h3>
+<div class="tldr"><b>TL;DR:</b> <b>процесс</b> — запущенная программа со своей памятью; <b>поток</b> — линия исполнения внутри процесса (потоки одного процесса делят память); <b>системный вызов</b> — просьба к ядру ОС сделать что-то привилегированное (прочитать файл, открыть сокет).</div>
+<p><b>Процесс vs поток:</b> процессы изолированы (не видят память друг друга), общаются через сокеты/пайпы/сигналы. Потоки внутри процесса <b>делят</b> память — быстрее общаются, но нужна синхронизация. В ядре Linux и то, и другое — «task».</p>
+<p><b>User space vs kernel space:</b> прикладной код работает в ограниченном режиме (user space, только своя память); ядро — в привилегированном (kernel space, доступ к железу). Переход между ними — через <b>системный вызов</b> (это «дорого», т.к. переключение режима).</p>
+<p><b>Важные сисколлы:</b> <code>fork</code> (создать процесс), <code>epoll</code> (асинхронно ждать готовности сокетов — основа сетевых серверов), <code>mmap</code> (отобразить файл/память).</p>
+<p class="see">Почему горутины «легче» потоков; как Go держит тысячи соединений (netpoller/epoll).</p>
+</div>
+
+<!-- ==================== КОНКУРЕНТНОСТЬ ==================== -->
+<h2 class="cat" id="c-conc">Конкурентность</h2>
+
+<div class="card" id="concpar">
+<h3>Конкурентность vs параллельность</h3>
+<div class="tldr"><b>TL;DR:</b> <b>конкурентность</b> — умение <i>управлять</i> многими задачами сразу (переключаясь между ними); <b>параллельность</b> — <i>физически</i> выполнять их одновременно на нескольких ядрах.</div>
+<p>Конкурентность возможна и на одном ядре (быстрое переключение создаёт иллюзию одновременности). Параллельность требует нескольких ядер. Конкурентность — про <i>структуру</i> программы, параллельность — про <i>исполнение</i>.</p>
+<p class="analogy">Один повар, жонглирующий тремя блюдами (конкурентность) vs три повара, каждый готовит своё (параллельность). Цитата Роба Пайка: «Concurrency is not parallelism».</p>
+</div>
+
+<div class="card" id="scheduler">
+<h3>Планировщик Go (G-M-P, work-stealing)</h3>
+<div class="tldr"><b>Короткий ответ:</b> планировщик раскладывает тысячи горутин по горстке потоков ОС (модель <b>M:N</b>). Три сущности: <b>G</b> — горутина, <b>M</b> — поток ОС, <b>P</b> — «право на исполнение» с очередью горутин. Чтобы M выполнял Go-код, ему нужен P; число P = <code>GOMAXPROCS</code> (обычно = числу ядер).</div>
+<p class="analogy">P — стойки регистрации в аэропорту (их ровно GOMAXPROCS), G — пассажиры, M — сотрудники. Сотрудник обслуживает, только заняв стойку; если очередь у его стойки кончилась — забирает половину очереди у соседа.</p>
+<details class="more"><summary>Как это работает — G-M-P, очереди, сисколлы, вытеснение (со схемой)</summary>
+<h4>Три сущности</h4>
+<p><b>G (goroutine)</b> — сама горутина: её стек, состояние, что выполнять. <b>M (machine)</b> — поток операционной системы, который реально исполняет код. <b>P (processor)</b> — логический процессор планировщика: очередь готовых горутин + право исполнять. Правило: <b>M крутит Go-код, только держа P</b> → сколько P, столько горутин исполняется одновременно.</p>
+<svg class="ill" viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="16" fill="#5dc9e2" font-size="10.5" text-anchor="middle">P = логический процессор (= GOMAXPROCS) · M крутит Go-код, только держа P</text>
+<rect x="46" y="30" width="210" height="86" rx="7" fill="#1c2438" stroke="#5dc9e2"/>
+<text x="60" y="48" fill="#5dc9e2" font-size="11">P1 · LRQ</text>
+<circle cx="92" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="92" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<circle cx="132" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="132" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<circle cx="172" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="172" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<line x1="151" y1="116" x2="151" y2="132" stroke="#8b95ab"/>
+<rect x="86" y="132" width="130" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="151" y="149" fill="#c3ccdf" font-size="10.5" text-anchor="middle">M1 — поток ОС</text>
+<rect x="384" y="30" width="210" height="86" rx="7" fill="#1c2438" stroke="#5dc9e2"/>
+<text x="398" y="48" fill="#5dc9e2" font-size="11">P2 · LRQ</text>
+<circle cx="430" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="430" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<circle cx="470" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="470" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<circle cx="510" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="510" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<circle cx="550" cy="82" r="15" fill="#22402f" stroke="#3ddc97"/><text x="550" y="86" fill="#e8ecf4" font-size="10" text-anchor="middle">G</text>
+<line x1="489" y1="116" x2="489" y2="132" stroke="#8b95ab"/>
+<rect x="424" y="132" width="130" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="489" y="149" fill="#c3ccdf" font-size="10.5" text-anchor="middle">M2 — поток ОС</text>
+<path d="M382 70 C 330 70, 308 70, 258 70" fill="none" stroke="#ffd166" stroke-width="1.5" marker-end="url(#sc)"/>
+<text x="320" y="62" fill="#ffd166" font-size="9.5" text-anchor="middle">P1 опустел → крадёт ½ у P2 (work-stealing)</text>
+<rect x="180" y="184" width="280" height="34" rx="6" fill="#171e2e" stroke="#3a4a6b"/>
+<text x="320" y="205" fill="#8b95ab" font-size="10.5" text-anchor="middle">GRQ — глобальная очередь (общая на всех)</text>
+<line x1="240" y1="184" x2="151" y2="160" stroke="#3a4a6b" stroke-dasharray="3 3"/>
+<line x1="400" y1="184" x2="489" y2="160" stroke="#3a4a6b" stroke-dasharray="3 3"/>
+<text x="320" y="240" fill="#8b95ab" font-size="10" text-anchor="middle">блокирующий сисколл → P отцепляют от M и отдают другому · сеть → netpoller (M свободен)</text>
+<defs><marker id="sc" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#ffd166"/></marker></defs>
+</svg>
+<h4>Очереди и приоритет выбора</h4>
+<p>У каждого P своя <b>локальная очередь</b> (LRQ, до <b>256</b> горутин, FIFO + оптимизация: только что разбуженную горутину кладут в отдельный «next»-слот и запускают <b>вне очереди</b> — данные ещё горячие в кэше). Плюс общая <b>глобальная очередь</b> (GRQ). Порядок, по которому P ищет следующую G: <b>1)</b> раз в 61 тик заглянуть в GRQ (чтобы её горутины не голодали); <b>2)</b> своя LRQ; <b>3)</b> украсть <b>половину</b> LRQ у случайного P (<b>work-stealing</b>); <b>4)</b> GRQ; <b>5)</b> netpoller. Ничего нет — поток паркуется (<code>park</code>).</p>
+<h4>Блокирующий сисколл и сеть</h4>
+<p><b>Сисколл:</b> когда горутина уходит в блокирующий системный вызов, её поток M «залипает» в ядре. Рантайм <b>отцепляет P от этого M</b> и отдаёт другому (свободному/новому) M, чтобы остальные горутины этого P не ждали (это <b>handoff</b>). Вернулся сисколл — бывший M пытается снова взять P; не вышло — горутина в очередь, лишний M засыпает.</p>
+<p><b>Сеть — через netpoller:</b> ожидание данных из сокета <b>не</b> блокирует поток. Горутина «паркуется», сокет регистрируется в netpoller (epoll/kqueue/IOCP), поток свободен и крутит другие горутины. Пришли данные — netpoller будит горутину. Отсюда фокус Go: пишешь простой <i>синхронный</i> код, а под капотом — эффективный асинхронный I/O; один сервер держит десятки тысяч соединений на горстке потоков.</p>
+<h4>Вытеснение (с Go 1.14)</h4>
+<p>Раньше планировщик был <b>кооперативным</b>: «жадная» горутина с тугим циклом без вызовов функций могла надолго захватить ядро. В 1.14 добавили <b>асинхронное вытеснение</b>: фоновый поток-сторож <b>sysmon</b> через сигнал ОС (<code>SIGURG</code>) прерывает горутину, крутящуюся дольше ~10 мс. sysmon также снимает P с застрявших в сисколлах и будит netpoller.</p>
+<h4>Состояния горутины</h4>
+<p><code>_Grunnable</code> (готова, в очереди) → <code>_Grunning</code> (исполняется на M) → <code>_Gwaiting</code> (ждёт канал/мьютекс/таймер/сеть — вне очереди) либо <code>_Gsyscall</code> (в сисколле, блокирует M) → назад в <code>_Grunnable</code>; в конце <code>_Gdead</code> (структура <code>g</code> переиспользуется из пула).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «что такое G, M, P?»; «сколько потоков создаст Go?» (≈ GOMAXPROCS + по одному на каждый заблокированный сисколл); «что делает рантайм, когда горутина блокируется на сисколле / ждёт сеть?»; «как Go вытесняет тугой цикл без вызовов функций?» (async preemption через <code>SIGURG</code>, с 1.14); «зачем work-stealing и почему крадёт половину?»; «что такое GOMAXPROCS?».</div>
+</details>
+</div>
+
+
+<div class="card" id="channels">
+<h3>Каналы (channels)</h3>
+<div class="tldr"><b>Короткий ответ:</b> канал — потокобезопасная «труба» для передачи данных между горутинами (одна кладёт <code>ch &lt;- v</code>, другая забирает <code>&lt;-ch</code>). Девиз Go: «не делите память — общайтесь через каналы». <b>Небуферизированный</b> — рандеву (отправитель ждёт получателя); <b>буферизированный</b> — очередь на N (не блокирует, пока есть место).</div>
+<p class="analogy">Небуферизированный — передать эстафету из рук в руки (встретились — передал). Буферизированный — положить на полочку на N мест, откуда заберут позже.</p>
+<details class="more"><summary>Буфер/небуфер, устройство (hchan), close, состояния, select</summary>
+<h4>Небуферизированный vs буферизированный</h4>
+<p>Вся разница — в размере буфера: сколько значений канал может держать <b>без</b> читателя.</p>
+
+<svg class="ill" viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<line x1="320" y1="28" x2="320" y2="198" stroke="#2a3550" stroke-dasharray="4 4"/>
+<text x="160" y="20" fill="#5dc9e2" font-size="11.5" text-anchor="middle">make(chan int) — ёмкость 0</text>
+<text x="160" y="36" fill="#8b95ab" font-size="10" text-anchor="middle">рандеву: из рук в руки</text>
+<circle cx="52" cy="98" r="22" fill="#1c2438" stroke="#5dc9e2"/><text x="52" y="96" fill="#c3ccdf" font-size="9.5" text-anchor="middle">send</text><text x="52" y="109" fill="#8b95ab" font-size="8" text-anchor="middle">G1</text>
+<circle cx="268" cy="98" r="22" fill="#1c2438" stroke="#3ddc97"/><text x="268" y="96" fill="#c3ccdf" font-size="9.5" text-anchor="middle">recv</text><text x="268" y="109" fill="#8b95ab" font-size="8" text-anchor="middle">G2</text>
+<line x1="78" y1="98" x2="240" y2="98" stroke="#8b95ab"/><polygon points="242,98 231,93 231,103" fill="#8b95ab"/>
+<text x="160" y="88" fill="#e8ecf4" font-size="9.5" text-anchor="middle">значение</text>
+<text x="160" y="140" fill="#ff6b6b" font-size="9" text-anchor="middle">передача = одно событие двух горутин</text>
+<text x="160" y="168" fill="#8b95ab" font-size="9" text-anchor="middle">нет получателя →</text>
+<text x="160" y="181" fill="#8b95ab" font-size="9" text-anchor="middle">отправитель стоит вечно</text>
+<text x="480" y="20" fill="#5dc9e2" font-size="11.5" text-anchor="middle">make(chan int, 1) — ёмкость 1</text>
+<text x="480" y="36" fill="#8b95ab" font-size="10" text-anchor="middle">почтовый ящик на 1 ячейку</text>
+<circle cx="378" cy="98" r="22" fill="#1c2438" stroke="#5dc9e2"/><text x="378" y="96" fill="#c3ccdf" font-size="9.5" text-anchor="middle">send</text><text x="378" y="109" fill="#8b95ab" font-size="8" text-anchor="middle">G1</text>
+<rect x="452" y="78" width="42" height="40" rx="5" fill="#233049" stroke="#3ddc97"/><text x="473" y="103" fill="#e8ecf4" font-size="12" text-anchor="middle">[ ]</text>
+<circle cx="582" cy="98" r="22" fill="#1c2438" stroke="#3ddc97"/><text x="582" y="96" fill="#c3ccdf" font-size="9.5" text-anchor="middle">recv</text><text x="582" y="109" fill="#8b95ab" font-size="8" text-anchor="middle">G2</text>
+<line x1="402" y1="98" x2="448" y2="98" stroke="#8b95ab" marker-end="url(#chm)"/>
+<line x1="498" y1="98" x2="558" y2="98" stroke="#8b95ab" marker-end="url(#chm)"/>
+<text x="425" y="145" fill="#3ddc97" font-size="9" text-anchor="middle">положил и ушёл</text>
+<text x="535" y="145" fill="#8b95ab" font-size="9" text-anchor="middle">заберёт позже</text>
+<text x="480" y="181" fill="#8b95ab" font-size="9" text-anchor="middle">блок только если ячейка занята</text>
+<defs><marker id="chm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<p><b>Небуферизированный</b> <code>make(chan T)</code> — ёмкость <b>0</b>, хранить негде. Это <b>рандеву</b>: значение идёт напрямую из рук отправителя в руки получателя, а <code>ch &lt;- v</code> завершается ровно в тот момент, когда кто-то делает <code>&lt;-ch</code>. Нет получателя — отправитель стоит сколько угодно. Отсюда важное: небуф. канал — это <b>не</b> «канал на 1 элемент», а на <b>ноль</b>. Годится как сигнал синхронизации.</p>
+<p><b>Буферизированный</b> <code>make(chan T, N)</code> — ячейка на N: отправитель кладёт значение и <b>сразу уходит</b>, получатель заберёт позже. Блокировка только если буфер полон при записи (тогда ведёт себя как небуферизированный) или пуст при чтении. Развязывает отправителя и получателя по скорости.</p>
+<pre class="go">unbuf := make(chan int)     // ёмкость 0 — рандеву, ждём встречи
+buf   := make(chan int, 1)  // ёмкость 1 — есть ячейка
+buf &lt;- 42        // не блокирует — легло в ячейку
+v, ok := &lt;-buf   // v=42, ok=true
+close(buf)
+v, ok = &lt;-buf    // v=0, ok=false  (закрыт и пуст)</pre>
+<h4>Зачем в генераторе нужна горутина</h4>
+<p>Генератор возвращает канал, из которого потом читают. Канал небуферизированный → запись ждёт читателя. Без горутины — замкнутый круг:</p>
+<pre class="go">func calc(v int) &lt;-chan int {
+    ch := make(chan int)
+    ch &lt;- v * v   // ← навсегда застряли: ждём читателя
+    close(ch)
+    return ch     // ← сюда никогда не дойдём
+}</pre>
+<p>Запись ждёт читателя → читатель появится только в <code>main</code>, но лишь <b>после</b> <code>return</code> → а <code>return</code> ждёт завершения записи. Go это ловит: <code>fatal error: all goroutines are asleep - deadlock!</code>. Горутина разрывает круг: запись уходит в фон и блокируется там, а <code>calc</code> немедленно возвращает канал.</p>
+<p>С буфером можно и без горутины — место есть, запись не блокирует:</p>
+<pre class="go">func calc(v int) &lt;-chan int {
+    ch := make(chan int, 1) // буфер на 1
+    ch &lt;- v * v             // не блокирует — легло в ячейку
+    close(ch)
+    return ch
+}</pre>
+<div class="warn"><b>⚠️ Но это не то же самое.</b> С буфером <code>v*v</code> считается <b>синхронно</b>, прямо в момент вызова — вся конкурентность исчезает. Представь, что вместо умножения там HTTP-запрос на 2 сек: <b>с горутиной</b> три <code>calc</code> запускаются мгновенно, запросы идут параллельно → ~2 сек; <b>без горутины</b> <code>main</code> ждёт каждый по очереди → 6 сек. Горутина здесь и есть вся суть — делает <code>calc</code> неблокирующим «запусти и вернись», а канал служит способом забрать результат позже.</div>
+<h4>Устройство под капотом (hchan)</h4>
+<p>Канал — указатель на структуру <code>hchan</code> в куче. Внутри: кольцевой буфер, индексы записи/чтения, две очереди ждущих горутин (<code>sudog</code>), флаг закрытия и мьютекс на всю структуру — отсюда потокобезопасность (любая операция берёт <code>lock</code>).</p>
+<svg class="ill" viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="15" fill="#5dc9e2" font-size="11" text-anchor="middle">hchan: кольцевой буфер + очереди ждущих горутин</text>
+<text x="40" y="42" fill="#8b95ab" font-size="10">buf (кольцо, dataqsiz=4):</text>
+<rect x="40" y="48" width="44" height="34" fill="#22402f" stroke="#3ddc97"/><text x="62" y="70" fill="#e8ecf4" font-size="11" text-anchor="middle">v1</text>
+<rect x="84" y="48" width="44" height="34" fill="#22402f" stroke="#3ddc97"/><text x="106" y="70" fill="#e8ecf4" font-size="11" text-anchor="middle">v2</text>
+<rect x="128" y="48" width="44" height="34" fill="#233049" stroke="#3a4a6b"/><text x="150" y="70" fill="#8b95ab" font-size="12" text-anchor="middle">·</text>
+<rect x="172" y="48" width="44" height="34" fill="#233049" stroke="#3a4a6b"/><text x="194" y="70" fill="#8b95ab" font-size="12" text-anchor="middle">·</text>
+<text x="62" y="98" fill="#3ddc97" font-size="9" text-anchor="middle">recvx (читать)</text>
+<text x="150" y="98" fill="#ffd166" font-size="9" text-anchor="middle">sendx (писать)</text>
+<text x="300" y="42" fill="#8b95ab" font-size="10">recvq — ждут ЧТЕНИЯ:</text>
+<circle cx="322" cy="62" r="13" fill="#1c2438" stroke="#5dc9e2"/><text x="322" y="66" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<circle cx="354" cy="62" r="13" fill="#1c2438" stroke="#5dc9e2"/><text x="354" y="66" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<text x="300" y="100" fill="#8b95ab" font-size="10">sendq — ждут ЗАПИСИ:</text>
+<circle cx="322" cy="120" r="13" fill="#1c2438" stroke="#ff6b6b"/><text x="322" y="124" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<text x="490" y="56" fill="#8b95ab" font-size="10">closed: 0 / 1</text>
+<text x="490" y="80" fill="#8b95ab" font-size="10">lock — мьютекс:</text>
+<text x="490" y="94" fill="#8b95ab" font-size="10">любая операция</text>
+<text x="490" y="108" fill="#8b95ab" font-size="10">берёт lock</text>
+<text x="320" y="164" fill="#8b95ab" font-size="10.5" text-anchor="middle">небуф.: отправитель пишет ПРЯМО в стек ждущего получателя (из recvq)</text>
+<text x="320" y="184" fill="#8b95ab" font-size="10.5" text-anchor="middle">буф.: пишем в buf, если есть место; полон → встаём в sendq и блокируемся</text>
+</svg>
+<pre class="go">type hchan struct {
+    qcount   uint           // сколько сейчас в буфере
+    dataqsiz uint           // размер буфера (0 у небуферизированного)
+    buf      unsafe.Pointer // кольцевой буфер
+    sendx    uint           // индекс записи в кольце
+    recvx    uint           // индекс чтения в кольце
+    recvq    waitq          // очередь горутин, ждущих чтения (sudog)
+    sendq    waitq          // очередь горутин, ждущих записи (sudog)
+    closed   uint32         // флаг закрытия
+    lock     mutex          // мьютекс на всю структуру
+}</pre>
+<p><b>Как идёт передача:</b> при отправке горутина проверяет — закрыт ли канал, есть ли ждущий получатель в <code>recvq</code>, есть ли место в буфере. Небуф.: если есть ждущий получатель — пишет значение <b>прямо в его стек</b> и будит его (единственное место в рантайме, где одна горутина пишет в стек другой). Буф.: если есть место — кладёт в <code>buf</code>; полон и никто не ждёт — встаёт в <code>sendq</code> и блокируется.</p>
+<h4>Закрытие канала</h4>
+<p><code>close(ch)</code> под локом: ставит <code>closed=1</code>, всем ждущим <b>читателям</b> отдаёт нулевое значение, всем ждущим <b>писателям</b> — <b>панику</b>, и будит их. Правила: закрывает <b>только отправитель</b> и только когда он единственный/последний писатель; закрывать со стороны читателя или при нескольких писателях — нельзя. Проверить, что закрыт, можно только чтением:</p>
+<pre class="go">v, ok := &lt;-ch   // ok == false → закрыт и пуст (v = нулевое)
+for v := range ch {
+    // цикл сам завершится, когда канал закроют и опустеет
+}</pre>
+<h4>Состояния канала (аксиомы)</h4>
+<table>
+<tr><th>Операция</th><th>nil-канал</th><th>открытый</th><th>закрытый</th></tr>
+<tr><td>send <code>ch&lt;-</code></td><td>блок навсегда</td><td>ок / блок</td><td><b>паника</b></td></tr>
+<tr><td>recv <code>&lt;-ch</code></td><td>блок навсегда</td><td>значение / блок</td><td>остатки буфера, потом zero + <code>ok=false</code></td></tr>
+<tr><td><code>close</code></td><td><b>паника</b></td><td>ок</td><td><b>паника</b></td></tr>
+</table>
+<p>Мнемоника: закрытый канал можно только <b>читать</b>; nil-канал только <b>блокирует</b> (а <code>close(nil)</code> — паника). «Чтение из закрытого не блокирует» — основа <code>for range ch</code> и приёма «в select ветку с закрытым каналом гасят через <code>ch = nil</code>».</p>
+<div class="warn"><b>⚠️ Когда все горутины засыпают (deadlock).</b> Если <b>все</b> горутины программы заблокированы на каналах и никто не может продвинуться, рантайм это <b>детектит</b> и падает с <code>fatal error: all goroutines are asleep - deadlock!</code>. Это <b>не паника</b> — <code>recover</code> не спасёт.<pre class="go">func main() {
+    ch := make(chan int)
+    ch &lt;- 1 // некому прочитать → блок навсегда
+}
+// fatal error: all goroutines are asleep - deadlock!</pre>Здесь <code>main</code> одна и блокируется на отправке в небуферизированный канал без получателя. То же будет при чтении из пустого канала без отправителя, при <code>wg.Wait()</code> без <code>Done()</code> и т.п. <b>Тонкость:</b> ловится, только когда спят <i>все</i> — если хоть одна горутина жива (например, тикает таймер), утечка одной заблокированной горутины пройдёт незаметно.</div>
+<h4>select</h4>
+<p><code>select</code> ждёт сразу несколько канальных операций. Готовые ветки перемешиваются и выбирается случайная; если готовых нет и есть <code>default</code> — выполняется он (неблокирующий режим), иначе горутина паркуется до готовности любой ветки. <code>nil</code>-канал в ветке делает её вечно не готовой (удобно «выключать» ветки).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «буферизированный vs небуферизированный — в чём разница и когда что?»; «что внутри канала (hchan)?»; «что при чтении/записи/close на nil и закрытом канале?»; «кто и когда должен закрывать канал?» (только отправитель, один раз); «как узнать, что канал закрыт?» (<code>v, ok := &lt;-ch</code>); «как работает select и зачем <code>ch = nil</code>?».</div>
+</details>
+</div>
+
+
+<div class="card" id="race">
+<h3>Гонка данных (race condition)</h3>
+<div class="tldr"><b>TL;DR:</b> баг, когда несколько потоков/горутин <b>одновременно</b> обращаются к одним данным и хотя бы один <b>пишет</b> — результат становится непредсказуемым.</div>
+<p>Пример: две горутины делают <code>counter++</code>. Эта операция не атомарна (прочитать → прибавить → записать); они могут «затереть» друг друга, и вместо 2 получится 1. Ищут детектором <code>go test -race</code> / <code>go run -race</code> (работает в <b>рантайме</b>, не на компиляции). Лечат синхронизацией: <a href="#mutex">мьютекс</a>, <a href="#atomic">atomic</a>, каналы.</p>
+</div>
+
+<div class="card" id="deadlock">
+<h3>Взаимоблокировка (deadlock)</h3>
+<div class="tldr"><b>TL;DR:</b> ситуация, когда потоки навечно ждут друг друга и никто не может продолжить.</div>
+<p>Классика: поток A захватил ресурс 1 и ждёт ресурс 2; поток B захватил ресурс 2 и ждёт ресурс 1. Оба замерли навсегда. В Go бывает и на каналах (все горутины уснули — рантайм печатает «all goroutines are asleep - deadlock!»).</p>
+<p><b>Как избегать:</b> захватывать блокировки <b>всегда в одном порядке</b>; использовать таймауты; дробить длинные транзакции; меньше ручных блокировок.</p><p><b>В БД (Postgres):</b> дедлоки детектятся автоматически — СУБД находит цикл ожидания блокировок и <b>откатывает одну транзакцию-«жертву»</b> с ошибкой <code>deadlock detected</code> (по таймауту <code>deadlock_timeout</code>, ~1с). Приложение должно поймать ошибку и <b>повторить</b> транзакцию. Профилактика та же: блокировать строки всегда в одном порядке.</p>
+<p class="analogy">Два человека в узком коридоре уступают друг другу «после вас» — и стоят вечно.</p>
+</div>
+
+<div class="card" id="mutex">
+<h3>Мьютекс, RWMutex, atomic и семафор</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>Mutex</b> — «замок», пускает к данным <b>только одного</b> за раз. <b>RWMutex</b> — <b>много читателей ИЛИ один писатель</b> (быстрее, когда чтений ≫ записей). <b>atomic</b> — lock-free операции над <b>одним словом</b> (счётчики/флаги, дешевле мьютекса). <b>Семафор</b> — пускает <b>до N</b> одновременно.</div>
+<p class="analogy">Mutex — ключ от туалета (один зашёл — остальные в очереди); RWMutex — читальный зал (читают многие, но на уборку всех выгоняют); семафор — парковка на N мест.</p>
+<details class="more"><summary>Чем отличаются и когда что брать — с примерами</summary>
+<h4>Mutex</h4>
+<p><code>mu.Lock()</code> перед работой с общими данными, <code>mu.Unlock()</code> после (обычно <code>defer mu.Unlock()</code>). Пока один держит замок — остальные ждут.</p>
+<pre class="go">var mu sync.Mutex
+mu.Lock()
+defer mu.Unlock()
+balance += 10</pre>
+<ul>
+<li><b>Не реентерабельный:</b> повторный <code>Lock()</code> в той же горутине → <b>deadlock</b>.</li>
+<li><b>Нельзя копировать</b> после использования (<code>go vet</code> ловит): копия — отдельный замок, синхронизации не будет. Передавать по указателю, не копировать структуру с мьютексом.</li>
+<li>Взял — <b>обязательно освободи</b> по всем путям выхода (в т.ч. при ошибке/панике → <code>defer</code>).</li>
+</ul>
+<h4>RWMutex — когда чтений сильно больше</h4>
+<p>Два режима: <code>RLock()/RUnlock()</code> — <b>много читателей</b> одновременно; <code>Lock()/Unlock()</code> — писатель <b>эксклюзивно</b> (ждёт, пока уйдут все читатели, и не пускает новых). Выгоден, когда <b>чтений ≫ записей</b> и секция не крохотная. Минусы: тяжелее обычного Mutex (внутренний учёт читателей — точка конкуренции на многих ядрах), возможно «голодание» писателя. Для очень коротких секций обычный <code>Mutex</code> часто быстрее.</p>
+<h4>atomic — lock-free</h4>
+<p>Пакет <code>sync/atomic</code> — атомарные операции над <b>одним словом</b> без блокировки: <code>Add</code>, <code>Load/Store</code>, <code>CompareAndSwap</code> (CAS), типы <code>atomic.Int64/Bool/Pointer</code>, <code>atomic.Value</code>. Дешевле мьютекса, но защищает <b>только одну переменную</b> — не составную критическую секцию.</p>
+<pre class="go">var n int64
+atomic.AddInt64(&amp;n, 1)      // потокобезопасный счётчик
+v := atomic.LoadInt64(&amp;n)</pre>
+<h4>sync.Once и sync.Cond</h4>
+<p><code>sync.Once</code> — гарантированно выполнить инициализацию <b>один раз</b> из нескольких горутин (<code>once.Do(func(){ ... })</code>). <code>sync.Cond</code> — условная переменная: горутины ждут (<code>Wait</code>) сигнала (<code>Signal/Broadcast</code>) о смене состояния; на практике часто заменяют каналами.</p>
+<h4>Семафор</h4>
+<p>Ограничивает число одновременных операций до N (напр. ≤ 10 запросов к внешнему API). В Go — буферизированный канал ёмкости N (занял слот перед работой, освободил после) или <code>golang.org/x/sync/semaphore</code>.</p>
+<pre class="go">sem := make(chan struct{}, 10)
+sem &lt;- struct{}{}          // занять слот (ждёт, если 10 заняты)
+go func() {
+    defer func() { &lt;-sem }() // освободить
+    do()
+}()</pre>
+<h4>Что когда брать</h4>
+<table>
+<tr><th>Инструмент</th><th>Когда</th></tr>
+<tr><td>atomic</td><td>одна переменная: счётчик, флаг, указатель</td></tr>
+<tr><td>Mutex</td><td>защитить составную секцию (несколько полей/операций)</td></tr>
+<tr><td>RWMutex</td><td>чтений ≫ записей и секция не крохотная</td></tr>
+<tr><td>канал</td><td>передать владение данными / синхронизация по событиям</td></tr>
+<tr><td>семафор</td><td>ограничить число одновременных операций</td></tr>
+</table>
+<div class="qbox"><b>Спрашивают на собесе:</b> «Mutex vs atomic — что быстрее и почему?» (atomic lock-free, но только одно слово); «когда RWMutex, а когда обычный Mutex?»; «можно ли копировать мьютекс?» (нет); «реентерабельный ли Mutex?» (нет → deadlock); «как ограничить параллелизм до N?» (семафор/канал); «чем <code>sync.Map</code> лучше map+Mutex?» (read-mostly, без глобального лока на чтение).</div>
+</details>
+</div>
+
+
+<div class="card" id="atomic">
+<h3>Атомарные операции (atomic)</h3>
+<div class="tldr"><b>TL;DR:</b> операция «неделимая» — выполняется целиком за один шаг, её нельзя прервать на середине. Позволяет безопасно менять число из многих горутин <b>без блокировок</b>.</div>
+<p>Пакет <code>sync/atomic</code> даёт атомарные <code>Add</code>, <code>Load</code>, <code>Store</code>, <code>CompareAndSwap</code> (CAS). Они реализованы на уровне инструкций процессора, поэтому <b>быстрее мьютекса</b> — но годятся только для простых вещей (счётчики, флаги). Мьютекс внутри сам построен поверх atomic (CAS).</p>
+<p class="analogy">Atomic — турникет, который либо пропустил и посчитал, либо нет; «полупройти» невозможно.</p>
+</div>
+
+<div class="card" id="concpatterns">
+<h3>Паттерны конкурентности (fan-in / fan-out / pipeline)</h3>
+<div class="tldr"><b>Короткий ответ:</b> типовые приёмы, как строить конкурентные программы на каналах. <b>Генератор</b> — функция возвращает канал с данными. <b>Fan-out</b> — несколько горутин читают из одного канала (распараллелили). <b>Fan-in (merge)</b> — несколько каналов сливаются в один. <b>Pipeline</b> — цепочка стадий через каналы. Везде главный вопрос: <b>кто пишет и кто закрывает канал</b>.</div>
+<p class="analogy">Fan-out — несколько кассиров на одну очередь. Fan-in — несколько очередей сходятся к одному выходу. Pipeline — конвейер: деталь идёт со станка на станок.</p>
+<details class="more"><summary>Генератор, fan-out, fan-in, pipeline — со схемами и разбором примера</summary>
+<h4>Генератор (source)</h4>
+<p>Функция создаёт канал, запускает горутину, которая шлёт значения и <b>закрывает</b> канал, и сразу возвращает канал (только на чтение). Вызывающий читает через <code>range</code>.</p>
+<pre class="go">func calc(v int) &lt;-chan int {
+    ch := make(chan int)
+    go func() {
+        ch &lt;- v * v
+        close(ch)   // закрыл — range у читателя завершится
+    }()
+    return ch
+}</pre>
+<h4>Fan-out — распараллелить чтение</h4>
+<p>Несколько горутин читают из <b>одного</b> канала <code>for job := range jobs</code> — задачи делятся между ними сами. Так масштабируют «тяжёлую» стадию.</p>
+<svg class="ill" viewBox="0 0 640 158" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="15" fill="#5dc9e2" font-size="11" text-anchor="middle">Fan-out: один канал → N горутин (распараллелили обработку)</text>
+<rect x="26" y="58" width="118" height="40" rx="6" fill="#233049" stroke="#3ddc97"/><text x="85" y="77" fill="#e8ecf4" font-size="11" text-anchor="middle">jobs</text><text x="85" y="91" fill="#8b95ab" font-size="9" text-anchor="middle">канал задач</text>
+<line x1="144" y1="70" x2="222" y2="42" stroke="#8b95ab" marker-end="url(#fo)"/>
+<line x1="144" y1="78" x2="222" y2="78" stroke="#8b95ab" marker-end="url(#fo)"/>
+<line x1="144" y1="86" x2="222" y2="114" stroke="#8b95ab" marker-end="url(#fo)"/>
+<circle cx="248" cy="40" r="18" fill="#1c2438" stroke="#5dc9e2"/><text x="248" y="44" fill="#c3ccdf" font-size="10" text-anchor="middle">G1</text>
+<circle cx="248" cy="78" r="18" fill="#1c2438" stroke="#5dc9e2"/><text x="248" y="82" fill="#c3ccdf" font-size="10" text-anchor="middle">G2</text>
+<circle cx="248" cy="116" r="18" fill="#1c2438" stroke="#5dc9e2"/><text x="248" y="120" fill="#c3ccdf" font-size="10" text-anchor="middle">G3</text>
+<text x="450" y="82" fill="#8b95ab" font-size="10.5" text-anchor="middle">каждая горутина берёт из одного jobs — задачи делятся сами</text>
+<defs><marker id="fo" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<pre class="go">// N воркеров читают из ОДНОГО канала jobs и делят задачи между собой
+func fanOut(jobs &lt;-chan int, workers int) &lt;-chan int {
+    results := make(chan int)
+    var wg sync.WaitGroup
+    wg.Add(workers)
+    for i := 0; i &lt; workers; i++ {
+        go func() {                    // запускаем ровно `workers` горутин
+            defer wg.Done()
+            for job := range jobs {    // все читают из общего jobs
+                results &lt;- heavy(job)  // кто свободен — тот и берёт задачу
+            }
+        }()
+    }
+    go func() { wg.Wait(); close(results) }() // закрыть, когда jobs иссяк
+    return results
+}</pre>
+<p>Одна очередь <code>jobs</code>, <b>N</b> одинаковых воркеров разбирают её конкурентно — балансировка происходит сама собой (кто освободился, тот берёт следующий job). Число воркеров = и есть <b>лимит параллелизма</b> (это и есть worker pool). Закрывает <code>results</code> отдельная горутина после <code>wg.Wait()</code> — как и в fan-in.</p>
+<h4>Fan-in (merge) — слить каналы в один</h4>
+<p>Обратное: много входных каналов → один выходной. На <b>каждый</b> вход — своя горутина, которая читает его и форвардит в общий <code>out</code>. Ключевой момент: <b>кто закроет <code>out</code>?</b> Отдельная горутина ждёт завершения всех через <code>WaitGroup</code> и только тогда закрывает <code>out</code> — иначе <code>for range out</code> у читателя зависнет навсегда (закроем рано — паника «send on closed»).</p>
+<svg class="ill" viewBox="0 0 640 178" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="15" fill="#5dc9e2" font-size="11" text-anchor="middle">Fan-in (merge): N каналов → один</text>
+<rect x="18" y="34" width="76" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="56" y="51" fill="#c3ccdf" font-size="10" text-anchor="middle">ch1</text>
+<rect x="18" y="76" width="76" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="56" y="93" fill="#c3ccdf" font-size="10" text-anchor="middle">ch2</text>
+<rect x="18" y="118" width="76" height="26" rx="5" fill="#233049" stroke="#3a4a6b"/><text x="56" y="135" fill="#c3ccdf" font-size="10" text-anchor="middle">ch3</text>
+<line x1="94" y1="47" x2="160" y2="47" stroke="#8b95ab" marker-end="url(#fi)"/>
+<line x1="94" y1="89" x2="160" y2="89" stroke="#8b95ab" marker-end="url(#fi)"/>
+<line x1="94" y1="131" x2="160" y2="131" stroke="#8b95ab" marker-end="url(#fi)"/>
+<circle cx="176" cy="47" r="14" fill="#1c2438" stroke="#5dc9e2"/><text x="176" y="51" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<circle cx="176" cy="89" r="14" fill="#1c2438" stroke="#5dc9e2"/><text x="176" y="93" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<circle cx="176" cy="131" r="14" fill="#1c2438" stroke="#5dc9e2"/><text x="176" y="135" fill="#c3ccdf" font-size="9" text-anchor="middle">G</text>
+<line x1="190" y1="47" x2="304" y2="80" stroke="#8b95ab" marker-end="url(#fi)"/>
+<line x1="190" y1="89" x2="304" y2="89" stroke="#8b95ab" marker-end="url(#fi)"/>
+<line x1="190" y1="131" x2="304" y2="98" stroke="#8b95ab" marker-end="url(#fi)"/>
+<rect x="308" y="72" width="88" height="34" rx="6" fill="#22402f" stroke="#3ddc97"/><text x="352" y="93" fill="#e8ecf4" font-size="11" text-anchor="middle">out</text>
+<line x1="396" y1="89" x2="470" y2="89" stroke="#3ddc97" marker-end="url(#fi)"/>
+<text x="516" y="93" fill="#c3ccdf" font-size="11" text-anchor="middle">main</text>
+<text x="320" y="166" fill="#8b95ab" font-size="9.5" text-anchor="middle">каждый вход читает СВОЯ горутина → пишет в общий out; отдельная горутина закрывает out после wg.Wait()</text>
+<defs><marker id="fi" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<pre class="go">func fanIn(chs ...&lt;-chan int) &lt;-chan int {
+    out := make(chan int)
+    var wg sync.WaitGroup
+    wg.Add(len(chs))
+    for _, ch := range chs {
+        go func(c &lt;-chan int) {   // на каждый вход — своя горутина
+            defer wg.Done()
+            for el := range c {   // читаем, пока вход не закроют
+                out &lt;- el         // и форвардим в общий out
+            }
+        }(ch)
+    }
+    go func() {
+        wg.Wait()   // дождались всех входов
+        close(out)  // и закрыли out (иначе range в main зависнет)
+    }()
+    return out
+}</pre>
+<h4>Pipeline — конвейер стадий</h4>
+<p>Стадии соединены каналами: каждая читает вход, обрабатывает, пишет в свой выход и закрывает его. Сигнал завершения течёт по цепочке. Плюс легко вставить fan-out внутрь стадии.</p>
+<svg class="ill" viewBox="0 0 640 176" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="16" fill="#5dc9e2" font-size="11" text-anchor="middle">Pipeline: значение течёт по стадиям, на каждой преобразуется</text>
+<text x="320" y="32" fill="#8b95ab" font-size="8.5" text-anchor="middle">кружок = одно значение «в пути» по каналу между стадиями (прослеживаем число 3)</text>
+<rect x="12" y="56" width="68" height="46" rx="6" fill="#2a2440" stroke="#5a4a7b"/>
+<text x="46" y="77" fill="#c3ccdf" font-size="11" text-anchor="middle">gen</text>
+<text x="46" y="92" fill="#8b95ab" font-size="8.5" text-anchor="middle">числа</text>
+<rect x="150" y="56" width="98" height="46" rx="6" fill="#233049" stroke="#3a4a6b"/>
+<text x="199" y="77" fill="#c3ccdf" font-size="11" text-anchor="middle">sq</text>
+<text x="199" y="92" fill="#8b95ab" font-size="8.5" text-anchor="middle">n → n²</text>
+<rect x="318" y="56" width="98" height="46" rx="6" fill="#233049" stroke="#3a4a6b"/>
+<text x="367" y="77" fill="#c3ccdf" font-size="11" text-anchor="middle">sq</text>
+<text x="367" y="92" fill="#8b95ab" font-size="8.5" text-anchor="middle">n → n²</text>
+<rect x="486" y="56" width="140" height="46" rx="6" fill="#22402f" stroke="#3ddc97"/>
+<text x="556" y="77" fill="#c3ccdf" font-size="11" text-anchor="middle">main</text>
+<text x="556" y="92" fill="#8b95ab" font-size="8.5" text-anchor="middle">печатает</text>
+<line x1="80" y1="79" x2="98" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<circle cx="115" cy="79" r="15" fill="#5dc9e2" stroke="#0f1420" stroke-width="1.5"/><text x="115" y="83" fill="#06121c" font-size="11" font-weight="bold" text-anchor="middle">3</text>
+<line x1="132" y1="79" x2="148" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<line x1="248" y1="79" x2="266" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<circle cx="283" cy="79" r="15" fill="#3ddc97" stroke="#0f1420" stroke-width="1.5"/><text x="283" y="83" fill="#06121c" font-size="11" font-weight="bold" text-anchor="middle">9</text>
+<line x1="300" y1="79" x2="316" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<line x1="416" y1="79" x2="434" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<circle cx="451" cy="79" r="15" fill="#ffd166" stroke="#0f1420" stroke-width="1.5"/><text x="451" y="83" fill="#06121c" font-size="11" font-weight="bold" text-anchor="middle">81</text>
+<line x1="468" y1="79" x2="484" y2="79" stroke="#8b95ab" marker-end="url(#pp)"/>
+<text x="320" y="132" fill="#c3ccdf" font-size="9.5" text-anchor="middle">и так для каждого входа:  2 → 4 → 16,   3 → 9 → 81   (порядок сохраняется)</text>
+<text x="320" y="155" fill="#8b95ab" font-size="9" text-anchor="middle">каждая стадия: читает вход → пишет выход → defer close(out); закрытие течёт по цепочке и гасит следующую</text>
+<defs><marker id="pp" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<pre class="go">// generator: числа → канал
+func gen(nums ...int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        defer close(out)          // закрыли выход, когда всё отдали
+        for _, n := range nums {
+            out &lt;- n
+        }
+    }()
+    return out
+}
+
+// стадия: читает вход, пишет квадраты в свой выход
+func sq(in &lt;-chan int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        defer close(out)
+        for n := range in {       // тянем, пока вход не закроют
+            out &lt;- n * n
+        }
+    }()
+    return out
+}
+
+func main() {
+    // соединяем стадии вложением: gen → sq → sq
+    for v := range sq(sq(gen(2, 3))) {
+        fmt.Println(v)            // 16, 81  (2→4→16, 3→9→81)
+    }
+}</pre>
+<p>Каждая стадия — функция <code>&lt;-chan → &lt;-chan</code>: читает вход, обрабатывает, пишет в свой выход и <code>defer close(out)</code> при завершении. Стадии стыкуются просто подстановкой канала (<code>sq(sq(gen(...)))</code>). <b>Сигнал завершения течёт по цепочке:</b> <code>gen</code> закрыл выход → <code>sq</code> дочитал и закрыл свой → <code>main</code> вышел из <code>range</code>. Внутрь любой стадии легко вставить fan-out, если она «тяжёлая».</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «что такое генератор/fan-in/fan-out/pipeline?»; «кто закрывает канал при merge и зачем отдельная горутина с <code>wg.Wait(); close(out)</code>?»; «сохраняется ли порядок при fan-in?» (нет); «как ограничить параллелизм в fan-out?» (worker pool/семафор); «как прокинуть отмену через pipeline?» (<code>ctx</code>/done-канал в каждый <code>select</code>).</div>
+</details>
+</div>
+
+<!-- ==================== СЕТИ ==================== -->
+<h2 class="cat" id="c-net">Сети</h2>
+
+<div class="card" id="tcpudp">
+<h3>TCP и UDP</h3>
+<div class="tldr"><b>TL;DR:</b> <b>TCP</b> — надёжная доставка с установкой соединения (как телефонный звонок); <b>UDP</b> — быстрая доставка без гарантий (как открытка).</div>
+<p><b>TCP:</b> устанавливает соединение (three-way handshake), гарантирует доставку и порядок (потерянные пакеты переотправляются), контролирует перегрузку. Медленнее из-за подтверждений. Для: HTTP, почта, БД, файлы.</p>
+<p><b>UDP:</b> просто шлёт датаграммы, ничего не гарантирует (могут потеряться/переставиться/задублироваться), зато без задержек на подтверждения. Для: видео/аудио-стриминг, игры, DNS, VoIP.</p>
+<p class="analogy">TCP — заказное письмо с уведомлением о вручении; UDP — крикнуть в толпу: быстро, но вдруг не услышат.</p>
+</div>
+
+<div class="card" id="http">
+<h3>HTTP и версии</h3>
+<div class="tldr"><b>TL;DR:</b> HTTP — текстовый протокол «запрос-ответ» поверх <a href="#tcpudp">TCP</a> для веба. Клиент шлёт запрос, сервер — ответ.</div>
+<p><b>Запрос:</b> стартовая строка (метод + путь + версия), заголовки, тело. <b>Ответ:</b> код состояния (200/404/500), заголовки, тело. Методы: GET (получить), POST (создать), PUT (заменить), PATCH (изменить), DELETE. Коды: 2xx успех, 3xx редирект, 4xx ошибка клиента, 5xx ошибка сервера.</p>
+<p><b>Версии:</b> HTTP/1.1 — одно соединение = один запрос за раз (keep-alive переиспользует соединение). HTTP/2 — <b>мультиплексирование</b> (много запросов по одному соединению параллельно), бинарный, сжатие заголовков. HTTP/3 — поверх UDP (QUIC), ещё быстрее.</p>
+</div>
+
+<div class="card" id="tls">
+<h3>HTTPS, SSL/TLS</h3>
+<div class="tldr"><b>TL;DR:</b> TLS — шифрование поверх <a href="#tcpudp">TCP</a>, превращает HTTP в HTTPS. SSL — старое название TLS.</div>
+<p>При установке соединения TLS-«рукопожатие» использует <b>асимметричное шифрование</b> (пара ключей: публичным шифруют, приватным расшифровывают) — чтобы безопасно договориться об общем <b>сессионном ключе</b>. Дальше данные шифруются быстрым <b>симметричным</b> ключом. Сертификат подтверждает, что сервер — тот, за кого себя выдаёт. HTTP — порт 80, HTTPS — 443.</p>
+<p class="analogy">Асимметрия — почтовый ящик: бросить письмо (публичный ключ) может любой, достать (приватный) — только владелец. Так передают секретный ключ, которым потом шифруют быстро.</p>
+</div>
+
+<div class="card" id="dns">
+<h3>DNS и NAT</h3>
+<div class="tldr"><b>TL;DR:</b> <b>DNS</b> — «телефонная книга интернета», переводит имя <code>google.com</code> в IP-адрес. <b>NAT</b> — подмена приватных адресов на один публичный, чтобы много устройств выходили в интернет через один IP.</div>
+<p><b>DNS:</b> браузер спрашивает у DNS-серверов IP по домену (рекурсивно, с кэшированием). Типы записей: A (IPv4), AAAA (IPv6), CNAME (алиас), MX (почта), SRV (сервисы).</p>
+<p><b>NAT:</b> дома у всех устройств приватные адреса (192.168.x.x); роутер подменяет их своим публичным при выходе наружу и помнит, кому вернуть ответ. Экономит дефицитные IPv4 и скрывает внутреннюю сеть.</p>
+</div>
+
+<!-- ==================== БД ==================== -->
+<h2 class="cat" id="c-db">Базы данных</h2>
+
+<div class="card" id="index">
+<h3>Индекс в БД</h3>
+<div class="tldr"><b>Короткий ответ:</b> индекс — вспомогательная структура (по умолчанию <b>B-tree</b>), ускоряющая поиск строк, как алфавитный указатель в книге. Ускоряет чтение, но <b>замедляет запись</b> и занимает место. Без индекса — перебор всей таблицы (seq scan, O(n)); с индексом — O(log n). Полезен только на <b>селективных</b> условиях (в ответе мало строк).</div>
+<p class="analogy">Алфавитный указатель в конце книги: по слову сразу находишь нужные страницы, не листая всю книгу.</p>
+<details class="more"><summary>Виды индексов, лучшие/худшие случаи, boolean, когда НЕ используется</summary>
+<h4>Как устроен — на примере</h4>
+<p>Индекс хранит значения колонки <b>отсортированно</b> вместе с указателем (TID) на строку. Поиск <code>WHERE age = 31</code>: бинарный поиск по индексу → TID → сразу нужная строка. Без индекса — <b>seq scan</b> всех строк.</p>
+<svg class="ill" viewBox="0 0 640 214" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="130" y="16" fill="#5dc9e2" font-size="10.5" text-anchor="middle">таблица (heap) — порядок произвольный</text>
+<rect x="40" y="26" width="180" height="26" fill="#233049" stroke="#3a4a6b"/><text x="52" y="43" fill="#c3ccdf" font-size="10">id=1 · age=42</text>
+<rect x="40" y="54" width="180" height="26" fill="#233049" stroke="#3a4a6b"/><text x="52" y="71" fill="#c3ccdf" font-size="10">id=2 · age=25</text>
+<rect x="40" y="82" width="180" height="26" fill="#26324d" stroke="#3ddc97"/><text x="52" y="99" fill="#e8ecf4" font-size="10">id=3 · age=31</text>
+<rect x="40" y="110" width="180" height="26" fill="#233049" stroke="#3a4a6b"/><text x="52" y="127" fill="#c3ccdf" font-size="10">id=4 · age=58</text>
+<text x="470" y="16" fill="#5dc9e2" font-size="10.5" text-anchor="middle">индекс по age (отсортирован)</text>
+<rect x="380" y="26" width="180" height="24" fill="#2a2440" stroke="#5a4a7b"/><text x="392" y="42" fill="#c3ccdf" font-size="10">25 &#8594; строка id=2</text>
+<rect x="380" y="52" width="180" height="24" fill="#26324d" stroke="#3ddc97"/><text x="392" y="68" fill="#e8ecf4" font-size="10">31 &#8594; строка id=3</text>
+<rect x="380" y="78" width="180" height="24" fill="#2a2440" stroke="#5a4a7b"/><text x="392" y="94" fill="#c3ccdf" font-size="10">42 &#8594; строка id=1</text>
+<rect x="380" y="104" width="180" height="24" fill="#2a2440" stroke="#5a4a7b"/><text x="392" y="120" fill="#c3ccdf" font-size="10">58 &#8594; строка id=4</text>
+<line x1="380" y1="64" x2="222" y2="95" stroke="#3ddc97" stroke-dasharray="3 3"/>
+<text x="320" y="176" fill="#8b95ab" font-size="10.5" text-anchor="middle">WHERE age = 31: бинарный поиск по индексу → указатель (TID) → сразу строка</text>
+<text x="320" y="196" fill="#ff6b6b" font-size="10.5" text-anchor="middle">без индекса — Seq Scan: перебор ВСЕХ строк таблицы</text>
+</svg>
+<pre>-- было: Seq Scan (читает всю таблицу)
+EXPLAIN ANALYZE SELECT * FROM users WHERE age = 31;
+
+CREATE INDEX idx_users_age ON users (age);
+
+-- стало: Index Scan (прыжок к нужным строкам)
+EXPLAIN ANALYZE SELECT * FROM users WHERE age = 31;</pre>
+<h4>Как БД выбирает способ поиска</h4>
+<ul>
+<li><b>Index Scan</b> — идём по индексу и по одному достаём строки. Хорош при <b>высокой селективности</b> (мало строк).</li>
+<li><b>Bitmap Index Scan</b> — собираем все подходящие TID в битовую карту, затем читаем страницы по разу; умеет комбинировать несколько индексов (BitmapAnd/Or). Для средних выборок.</li>
+<li><b>Seq Scan</b> — если условие <b>неселективно</b> (возвращает большую часть таблицы), последовательное чтение <b>быстрее</b> индекса (меньше случайных чтений). Оптимизатор оценивает это по статистике.</li>
+</ul>
+<p>Смотреть план — <code>EXPLAIN ANALYZE</code>: какой скан выбран, оценка vs факт строк, время.</p>
+<h4>Виды индексов (PostgreSQL)</h4>
+<table>
+<tr><th>Тип</th><th>Лучший случай</th><th>Не подходит</th></tr>
+<tr><td><b>B-tree</b></td><td>по умолчанию: <code>=</code>, диапазоны <code>&lt; &gt; BETWEEN</code>, сортировка, префикс <code>LIKE 'abc%'</code></td><td>полнотекст, <code>LIKE '%abc'</code>, гео</td></tr>
+<tr><td><b>Hash</b></td><td>только точное <code>=</code></td><td>диапазоны и сортировку не умеет; B-tree почти всегда не хуже</td></tr>
+<tr><td><b>GiST</b></td><td>гео (координаты, «ближайшие»), пересечения, диапазоны</td><td>обычное равенство (B-tree лучше)</td></tr>
+<tr><td><b>SP-GiST</b></td><td>иерархические/неравномерные данные (квадродеревья, IP-префиксы)</td><td>универсальность</td></tr>
+<tr><td><b>GIN</b></td><td>«много значений в строке»: полнотекст, <code>jsonb</code>, массивы</td><td>частые обновления (дорогая запись)</td></tr>
+<tr><td><b>RUM</b> (расширение)</td><td>полнотекст с ранжированием и по позициям/диапазонам</td><td>больше размер и медленнее запись, чем GIN</td></tr>
+<tr><td><b>BRIN</b></td><td>огромные таблицы с физически упорядоченными данными (время, id) — крошечный индекс</td><td>неупорядоченные данные (бесполезен)</td></tr>
+</table>
+<h4>Разновидности по построению</h4>
+<ul>
+<li><b>Составной</b> <code>(a, b)</code> — по <b>левому префиксу</b>: помогает по <code>a</code> и <code>a+b</code>, но не по одному <code>b</code>. Порядок важен: сначала колонки по равенству, потом по диапазону.</li>
+<li><b>Покрывающий</b> (covering) — в индексе есть все нужные колонки → <b>Index Only Scan</b> без похода в таблицу (эффективнее после VACUUM).</li>
+<li><b>Частичный</b> <code>WHERE условие</code> — индексируем только часть строк; маленький и быстрый.</li>
+<li><b>Функциональный</b> <code>lower(email)</code> — индекс по выражению (иначе <code>WHERE lower(email)=...</code> индекс по <code>email</code> не задействует).</li>
+</ul>
+<h4>Есть ли смысл индексировать boolean (true/false)?</h4>
+<p>Обычно <b>нет</b>: у булевой колонки очень <b>низкая селективность</b> (2 значения) — на «половину таблицы» оптимизатор всё равно выберет seq scan, обычный индекс не поможет и почти не будет использоваться. Смысл появляется, только если распределение <b>сильно перекошено</b> и ищут <b>редкое</b> значение — тогда берут <b>частичный</b> индекс на него: напр. <code>is_deleted=true</code> у 1% строк → <code>CREATE INDEX ... WHERE is_deleted</code> (крохотный индекс на нужные строки; на частое <code>false</code> индекс не нужен).</p>
+<h4>Когда индекс НЕ используется</h4>
+<ul>
+<li><b>Функция/приведение над колонкой:</b> <code>WHERE lower(x)=...</code>, <code>x::text=...</code> → нужен функциональный индекс.</li>
+<li><b>Низкая селективность</b> — условие возвращает большую часть таблицы → seq scan дешевле.</li>
+<li><b>Не левый префикс</b> составного индекса (условие только по второй колонке).</li>
+<li><b>LIKE '%abc'</b> с ведущим <code>%</code> — B-tree бессилен (нужен GIN/триграммы <code>pg_trgm</code>).</li>
+<li>Устаревшая статистика (нужен <code>ANALYZE</code>); очень маленькая таблица (seq scan и так мгновенный).</li>
+</ul>
+<h4>Кластерный vs некластерный</h4>
+<p><b>Кластерный</b> индекс задаёт <b>физический порядок</b> строк на диске (один на таблицу). В <b>MySQL/InnoDB</b> первичный ключ — кластерный: строки лежат в B-tree по PK, вторичные индексы хранят PK. В <b>PostgreSQL</b> кластерных индексов нет — строки лежат в куче (heap) в произвольном порядке, все индексы <b>вторичные (некластерные)</b>; команда <code>CLUSTER</code> лишь разово пересортирует таблицу (порядок дальше не поддерживается).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «зачем индекс и чем платим?»; «почему индекс может не сработать?»; «виды индексов и когда что?» (B-tree/Hash/GiST/GIN/BRIN); «есть ли смысл индексировать boolean?» (только частичным на редкое значение); «покрывающий/частичный/составной и левый префикс?»; «кластерный vs некластерный (MySQL vs Postgres)?»; «как понять, что запрос не использует индекс?» (<code>EXPLAIN ANALYZE</code>).</div>
+</details>
+</div><div class="card" id="acid">
+<h3>Транзакции и ACID</h3>
+<div class="tldr"><b>TL;DR:</b> транзакция — группа операций «всё или ничего». ACID — 4 гарантии, которые делают её надёжной.</div>
+<ul>
+<li><b>A (Atomicity, атомарность):</b> либо все операции применились, либо ни одна (откат при ошибке).</li>
+<li><b>C (Consistency, согласованность):</b> транзакция переводит БД из одного корректного состояния в другое (не нарушая правил/ограничений).</li>
+<li><b>I (Isolation, изоляция):</b> параллельные транзакции не мешают друг другу (как будто идут по очереди).</li>
+<li><b>D (Durability, надёжность):</b> после подтверждения (commit) данные не потеряются даже при сбое.</li>
+</ul>
+<p class="analogy">Перевод денег: либо и списание, и зачисление, либо ничего — нельзя, чтобы деньги «исчезли» между счетами.</p>
+<details class="more"><summary>Как каждая буква реализована (Postgres) — глубина для сеньора</summary>
+<ul>
+<li><b>A — атомарность:</b> через MVCC — версии строк помечены id транзакции; при откате транзакция просто помечается отменённой, и её версии строк становятся невидимыми для всех. Ничего физически «отматывать» не надо.</li>
+<li><b>C — согласованность:</b> constraints (PK/FK/UNIQUE/CHECK) + инварианты приложения. Тонкость, которую любят на собесе: C — единственная буква, которую БД <b>не может обеспечить сама</b> — «правильность» бизнес-инвариантов (баланс не отрицательный, долги сходятся) определяет приложение, БД лишь даёт инструменты.</li>
+<li><b>I — изоляция:</b> MVCC (снимки данных) + уровни изоляции — от Read Committed до Serializable (см. карточку «Уровни изоляции»).</li>
+<li><b>D — надёжность:</b> <b>WAL</b> (write-ahead log): изменения сначала пишутся в последовательный лог с fsync при commit, потом — в страницы данных. После сбоя БД доигрывает WAL от последнего <b>checkpoint</b>. На WAL же построены репликация и point-in-time recovery.</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «расшифруй ACID с примерами»; «как БД гарантирует durability?» (WAL + fsync + checkpoint); «как реализована атомарность?» (версии строк, отметка об отмене); «какая буква — не про БД?» (C — инварианты задаёт приложение).</div>
+</details>
+</div>
+
+<div class="card" id="isolation">
+<h3>Уровни изоляции и аномалии</h3>
+<div class="tldr"><b>TL;DR:</b> чем строже изоляция параллельных транзакций, тем меньше «аномалий», но тем медленнее. Нужен баланс.</div>
+<p><b>Аномалии</b> (что может пойти не так при параллельности):</p>
+<ul>
+<li><b>Потерянное обновление (lost update):</b> две транзакции прочитали одно значение, обновили и закоммитили — одна затёрла изменения другой.</li>
+<li><b>Грязное чтение (dirty read):</b> прочитали чужие <i>незакоммиченные</i> изменения, которые потом откатились.</li>
+<li><b>Неповторяемое чтение (non-repeatable read):</b> перечитали ту же строку — значение уже другое (кто-то изменил и закоммитил).</li>
+<li><b>Фантомное чтение (phantom read):</b> перечитали по условию — строк стало больше/меньше (кто-то вставил/удалил).</li>
+<li><b>Аномалия сериализации (serialization anomaly):</b> итог группы параллельных транзакций не совпадает ни с одним последовательным порядком их выполнения.</li>
+</ul>
+<p><b>Уровни</b> (от слабого к строгому): Read Uncommitted → Read Committed (дефолт в Postgres) → Repeatable Read → Serializable (полная изоляция, как будто транзакции строго по очереди).</p>
+<table>
+<tr><th>Уровень</th><th>Грязное</th><th>Неповтор.</th><th>Фантом</th><th>Сериализ.</th></tr>
+<tr><td>Read Uncommitted</td><td>да*</td><td>да</td><td>да</td><td>да</td></tr>
+<tr><td>Read Committed</td><td>нет</td><td>да</td><td>да</td><td>да</td></tr>
+<tr><td>Repeatable Read</td><td>нет</td><td>нет</td><td>да**</td><td>да</td></tr>
+<tr><td>Serializable</td><td>нет</td><td>нет</td><td>нет</td><td>нет</td></tr>
+</table>
+<p class="see">* В Postgres грязного чтения нет даже на Read Uncommitted — он ведёт себя как Read Committed. ** По SQL-стандарту на Repeatable Read фантомы возможны, но в Postgres (snapshot isolation) их уже нет.</p>
+<p><b>Потерянное обновление:</b> на Read Committed его надо предотвращать самому — атомарным <code>UPDATE ... SET x = x - 1 WHERE ...</code> или <code>SELECT ... FOR UPDATE</code>; с Repeatable Read и выше Postgres сам ловит конфликт и падает с ошибкой сериализации (транзакцию нужно повторить).</p>
+<p><b>Оптимистичные vs пессимистичные блокировки:</b> пессимистичная — сразу лочим строку (<code>SELECT FOR UPDATE</code>); оптимистичная — не лочим, но при commit проверяем, не изменил ли кто версию (версионное поле), и если да — повторяем.</p>
+</div>
+
+<div class="card" id="mvcc">
+<h3>MVCC — многоверсионность</h3>
+<div class="tldr"><b>TL;DR:</b> Postgres не заставляет читателей и писателей ждать друг друга — каждая транзакция видит свой «снимок» данных. Это и есть MVCC.</div>
+<ul>
+<li><b>Суть:</b> при <code>UPDATE</code> строка не переписывается на месте — создаётся <b>новая версия</b>, старая живёт, пока её видят другие транзакции. У версии есть метки <code>xmin</code>/<code>xmax</code> (кто создал/удалил).</li>
+<li><b>Зачем:</b> читатели не блокируют писателей и наоборот — <code>SELECT</code> видит версию, актуальную на момент его снимка. Изоляция без тяжёлых локов на чтение.</li>
+<li><b>Snapshot isolation:</b> на Repeatable Read транзакция работает с одним снимком на всю свою длину — отсюда в Postgres нет неповторяемых и фантомных чтений.</li>
+<li><b>Цена:</b> «мёртвые» версии (dead tuples) копятся → нужен <code>VACUUM</code>: убирает мёртвые версии, обновляет карту видимости (для Index Only Scan) и статистику. <b>Autovacuum</b> делает это автоматически в фоне по порогам (доля изменённых строк). Забьёшь — <b>bloat</b> (распухание таблиц и индексов) и замедление; при частых массовых UPDATE/DELETE его настраивают агрессивнее.</li>
+</ul>
+<p class="analogy">Как git: при изменении не стираешь старое, а добавляешь новую версию; каждый видит нужный «коммит».</p>
+<p class="see">Уровни изоляции — карточка «Уровни изоляции и аномалии».</p>
+</div>
+
+<div class="card" id="locks">
+<h3>Блокировки: оптимистичная и пессимистичная</h3>
+<div class="tldr"><b>Короткий ответ:</b> два подхода к конкурентному изменению одних данных. <b>Пессимистичная</b> — сразу заблокировать строку (<code>SELECT … FOR UPDATE</code>): пока меняем — никто не тронет. <b>Оптимистичная</b> — не блокируем, но при записи проверяем, не изменил ли кто данные (по версии/timestamp), и если да — повторяем.</div>
+<p class="analogy">Пессимистичная — закрыть дверь на ключ, пока работаешь. Оптимистичная — работать при открытой двери, но перед сохранением проверить, не влез ли кто, и если влез — переделать.</p>
+<details class="more"><summary>Когда что, реализация, deadlock — и как решать</summary>
+<h4>Пессимистичная</h4>
+<p>Блокируем ресурс заранее. В SQL — <code>SELECT ... FOR UPDATE</code> в транзакции: строка залочена до commit/rollback, другие с <code>FOR UPDATE</code> ждут. Надёжно при <b>высокой конкуренции</b> за одни строки (списание денег), но снижает параллелизм и рискует дедлоками/долгими ожиданиями. Варианты: <code>FOR SHARE</code>; <code>SKIP LOCKED</code> (взять свободные — для очередей на БД); <code>NOWAIT</code> (не ждать, сразу ошибка).</p>
+<h4>Оптимистичная</h4>
+<p>Не лочим. Держим колонку <b>version</b> (или updated_at). Читаем строку с версией, обновляем: <code>UPDATE ... WHERE id=? AND version=?</code>, увеличивая версию. Затронуто <b>0 строк</b> → кто-то успел изменить (версия не совпала) → перечитываем и повторяем. Хорошо при <b>редких конфликтах</b> (много читают, редко пишут пересекающееся) — нет накладных на локи. В Postgres то же даёт Repeatable Read/Serializable (ловит конфликт и падает ошибкой сериализации).</p>
+<pre>-- пессимистичная
+BEGIN;
+SELECT balance FROM accounts WHERE id = 1 FOR UPDATE;
+UPDATE accounts SET balance = balance - 10 WHERE id = 1;
+COMMIT;
+
+-- оптимистичная (version)
+UPDATE accounts SET balance = balance - 10, version = version + 1
+WHERE id = 1 AND version = 42;   -- 0 строк → повтор</pre>
+<h4>Типы блокировок в Postgres (кто их берёт)</h4><p><b>Табличные</b> — берёт почти любая команда, различаются «тяжестью»: <code>SELECT</code> берёт лёгкий <code>ACCESS SHARE</code>, а DDL (<code>ALTER</code>/<code>DROP</code>, <code>TRUNCATE</code>, <code>VACUUM FULL</code>) — <code>ACCESS EXCLUSIVE</code>, который конфликтует со <b>всеми</b>. Поэтому ALTER под нагрузкой блокирует даже чтение — отсюда <code>lock_timeout</code> и <code>CREATE INDEX CONCURRENTLY</code>.</p><p><b>Строчные</b> — берут <code>UPDATE</code>/<code>DELETE</code> и явный <code>SELECT … FOR UPDATE</code> (конфликтует сам с собой). Модификаторы: <code>NOWAIT</code> — не ждать, сразу ошибка; <code>SKIP LOCKED</code> — пропустить занятые строки (идиома очереди задач в БД); <code>FOR SHARE</code> — «читательская» блокировка строки.</p><p><b>Advisory (пользовательские)</b> — не привязаны к данным: приложение само лочит произвольный числовой ключ через <code>pg_advisory_lock(key)</code> — удобно как распределённый лок между инстансами («только один воркер делает джобу»).</p><p><b>Важно:</b> читатели и писатели <b>не блокируют</b> друг друга благодаря MVCC (читатель видит прошлую версию строки) — блокировки нужны писателям между собой и DDL.</p><h4>Deadlock и как решать</h4>
+<p>Транзакция A залочила строку 1 и ждёт строку 2; B — наоборот → обе висят. Postgres <b>детектит цикл</b> и <b>откатывает жертву</b> с ошибкой <code>deadlock detected</code> (по <code>deadlock_timeout</code>, ~1с); приложение должно <b>повторить</b> транзакцию. Профилактика: брать блокировки <b>всегда в одном порядке</b> (напр. <code>ORDER BY id</code>); короткие транзакции; <code>lock_timeout</code>; меньше ручных локов.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «оптимистичная vs пессимистичная — разница и когда что?»; «как реализовать каждую?» (<code>SELECT FOR UPDATE</code> / колонка version); «что при конфликте в оптимистичной?» (0 строк → повтор); «что такое deadlock и как БД его решает?» (детект + откат жертвы); «как избегать deadlock?» (единый порядок блокировок, короткие транзакции); «какие <b>типы</b> блокировок в PG и кто их берёт?» (табличные <code>ACCESS SHARE/EXCLUSIVE</code>, строчные <code>FOR UPDATE</code>/<code>SKIP LOCKED</code>, advisory).</div>
+</details>
+</div>
+
+<div class="card" id="normalization">
+<h3>Нормализация и денормализация</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>нормализация</b> — раскладывать данные без дублирования (по таблицам со связями, «одна правда в одном месте»); <b>денормализация</b> — намеренно продублировать/агрегировать ради скорости чтения. Нормализация упрощает запись и целостность ценой JOIN'ов; денормализация ускоряет чтение ценой сложной поддержки согласованности.</div>
+<p class="analogy">Нормализация — хранить адрес клиента в одном месте и ссылаться на него; денормализация — вписать адрес в каждый заказ, чтобы не джойнить.</p>
+<details class="more"><summary>Нормальные формы 1NF→3NF (и BCNF), когда денормализовать</summary>
+<h4>Нормальные формы</h4>
+<ul>
+<li><b>1NF:</b> все значения атомарны (никаких «списков в одной ячейке»), есть уникальный ключ. Нарушение: колонка <code>phones = '111, 222'</code>.</li>
+<li><b>2NF:</b> 1NF + каждый неключевой атрибут зависит от <b>всего</b> составного ключа, а не от его части. Нарушение: в (order_id, product_id, product_name) — <code>product_name</code> зависит только от product_id → вынести товары в отдельную таблицу.</li>
+<li><b>3NF:</b> 2NF + нет <b>транзитивных</b> зависимостей (неключевой зависит от другого неключевого). Нарушение: (id, city, zip), где zip определяет city → вынести справочник.</li>
+<li><b>BCNF</b> — усиленная 3NF (каждая детерминанта — потенциальный ключ). На практике целятся в 3NF.</li>
+</ul>
+<h4>Денормализация — когда осознанно нарушаем</h4>
+<p>Для высоконагруженного <b>чтения</b> и отчётов: дублируем/агрегируем данные, чтобы читать из одной таблицы без JOIN (счётчики, витрины, кэш-колонки, <a href="#dbobjects">materialized view</a>). Плата — при записи держать копии согласованными (триггеры/приложение/фоновые пересчёты), риск рассогласования. Правило: сначала нормализуй, денормализуй точечно под конкретный узкий запрос, когда упёрся в производительность.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «что такое 1NF/2NF/3NF на примере?»; «зачем нормализовать?» (нет дублей и рассогласований); «когда денормализовать и чем платишь?»; «как поддерживать денормализованные данные согласованными?».</div>
+</details>
+</div><div class="card" id="shardrepl">
+<h3>Репликация и шардирование</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>репликация</b> — копии ОДНИХ И ТЕХ ЖЕ данных на разных серверах (надёжность + масштаб чтения); <b>шардирование</b> — РАЗНЫЕ части данных на разных серверах (масштаб объёма и записи). Часто вместе: каждый шард ещё и реплицируется.</div>
+<p class="analogy">Репликация — несколько одинаковых копий книги в разных читальных залах. Шардирование — тома энциклопедии (А–Й, К–П, Р–Я) по разным залам.</p>
+<details class="more"><summary>Мастер/реплики (когда, sync/async, лаг) и стратегии шардирования — со схемами</summary>
+<h4>Репликация: мастер и реплики</h4>
+<p>Все <b>записи</b> идут на <b>мастер</b> (leader/primary); он передаёт поток изменений (WAL) на <b>реплики</b> (followers), которые обслуживают <b>чтение</b>.</p>
+<svg class="ill" viewBox="0 0 640 188" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<rect x="250" y="24" width="140" height="34" rx="6" fill="#26324d" stroke="#5dc9e2"/><text x="320" y="45" fill="#e8ecf4" font-size="12" text-anchor="middle">МАСТЕР (запись)</text>
+<text x="150" y="44" fill="#3ddc97" font-size="10" text-anchor="end">все записи</text>
+<line x1="155" y1="41" x2="248" y2="41" stroke="#3ddc97" marker-end="url(#rp)"/>
+<line x1="290" y1="58" x2="182" y2="108" stroke="#8b95ab" marker-end="url(#rp)"/>
+<line x1="350" y1="58" x2="458" y2="108" stroke="#8b95ab" marker-end="url(#rp)"/>
+<text x="320" y="86" fill="#8b95ab" font-size="9" text-anchor="middle">поток изменений (WAL)</text>
+<rect x="112" y="110" width="140" height="34" rx="6" fill="#1c2438" stroke="#3a4a6b"/><text x="182" y="131" fill="#c3ccdf" font-size="11" text-anchor="middle">РЕПЛИКА 1</text>
+<rect x="388" y="110" width="140" height="34" rx="6" fill="#1c2438" stroke="#3a4a6b"/><text x="458" y="131" fill="#c3ccdf" font-size="11" text-anchor="middle">РЕПЛИКА 2</text>
+<text x="320" y="168" fill="#5dc9e2" font-size="10.5" text-anchor="middle">чтения ← реплики (масштаб чтения; async → возможен лаг)</text>
+<defs><marker id="rp" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<p><b>Когда применять:</b></p>
+<ul>
+<li><b>Масштаб чтения</b> (read-heavy): много SELECT, мало записи → раскидываем чтение по репликам (напр. RDS read replicas).</li>
+<li><b>Отказоустойчивость (HA):</b> мастер упал → реплику <b>промоутят</b> в мастер (failover).</li>
+<li><b>Гео-близость:</b> реплики в разных регионах → чтение с ближайшей (меньше латентность).</li>
+<li><b>Разгрузка:</b> тяжёлую аналитику/бэкапы гоняют по реплике, не трогая мастер.</li>
+</ul>
+<p><b>Синхронная vs асинхронная (главный трейдофф):</b></p>
+<ul>
+<li><b>Асинхронная</b> — мастер отвечает клиенту сразу, реплики догоняют потом. Быстро и устойчиво к падению реплик, но есть <b>лаг репликации</b>: реплика отстаёт → можно прочитать устаревшее (и при failover потерять последние коммиты). Дефолт для соцсетей.</li>
+<li><b>Синхронная</b> — мастер ждёт подтверждения реплики перед ответом. Нет потери при failover, но <b>медленнее</b> запись и уязвима к тормозам/падению реплики. Для банков.</li>
+<li><b>Полусинхронная</b> — ждём хотя бы одну реплику: баланс (e-commerce, бронирования).</li>
+</ul>
+<p><b>Лаг репликации — частая боль:</b> «read-your-writes» — записал на мастер, тут же прочитал с реплики и не увидел свою запись. Лечат: читать критичное с мастера, «липкие» сессии, ждать нужного LSN.</p>
+<h4>Шардирование (горизонтальное разбиение)</h4>
+<p><b>Когда нужно:</b> данные или нагрузка <b>записи</b> не влезают в один сервер (реплики масштабируют только чтение). Тогда таблицу режут на <b>шарды</b> по <b>ключу шардирования</b>, каждый — на своём сервере.</p>
+<svg class="ill" viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<rect x="16" y="68" width="118" height="38" rx="6" fill="#2a2440" stroke="#5a4a7b"/><text x="75" y="85" fill="#c3ccdf" font-size="10" text-anchor="middle">ключ = user_id</text><text x="75" y="99" fill="#8b95ab" font-size="8.5" text-anchor="middle">hash / range</text>
+<line x1="134" y1="80" x2="200" y2="44" stroke="#8b95ab" marker-end="url(#sh)"/>
+<line x1="134" y1="87" x2="200" y2="88" stroke="#8b95ab" marker-end="url(#sh)"/>
+<line x1="134" y1="94" x2="200" y2="132" stroke="#8b95ab" marker-end="url(#sh)"/>
+<rect x="204" y="26" width="230" height="34" rx="6" fill="#22402f" stroke="#3ddc97"/><text x="319" y="47" fill="#e8ecf4" font-size="10.5" text-anchor="middle">Шард 0 · узел 1 · users A–H</text>
+<rect x="204" y="70" width="230" height="34" rx="6" fill="#22402f" stroke="#3ddc97"/><text x="319" y="91" fill="#e8ecf4" font-size="10.5" text-anchor="middle">Шард 1 · узел 2 · users I–P</text>
+<rect x="204" y="114" width="230" height="34" rx="6" fill="#22402f" stroke="#3ddc97"/><text x="319" y="135" fill="#e8ecf4" font-size="10.5" text-anchor="middle">Шард 2 · узел 3 · users Q–Z</text>
+<text x="500" y="74" fill="#8b95ab" font-size="9.5">часть данных</text><text x="500" y="88" fill="#8b95ab" font-size="9.5">на своём</text><text x="500" y="102" fill="#8b95ab" font-size="9.5">сервере</text>
+<text x="320" y="176" fill="#8b95ab" font-size="10.5" text-anchor="middle">данные одного пользователя — в одном шарде (ключ = user_id)</text>
+<defs><marker id="sh" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<p><b>Как обычно шардируют (стратегии):</b></p>
+<ul>
+<li><b>По диапазону (range):</b> id 1–1M → шард 1, 1M–2M → шард 2. Удобны range-запросы и сортировка, но легко получить <b>горячий</b> шард (все новые записи — в последний).</li>
+<li><b>По хешу (hash):</b> <code>shard = hash(key) % N</code>. Ровное распределение, нет горячих точек, но <b>range-запросы</b> невозможны, а при добавлении узла (меняется N) — массовое перераспределение.</li>
+<li><b>Консистентное хеширование:</b> шардов сильно больше, чем узлов, + таблица «шард→узел»; при добавлении узла переезжает лишь часть шардов, а не всё. Так делают Cassandra, DynamoDB, распределённые кэши.</li>
+<li><b>Через справочник (directory):</b> отдельная таблица «ключ→шард». Максимум гибкости (двигать/изолировать конкретных пользователей), но справочник — единая точка отказа и лишний lookup.</li>
+<li><b>Гео/по тенанту:</b> по региону или клиенту (data residency, изоляция крупных клиентов).</li>
+</ul>
+<p><b>Выбор ключа критичен:</b> он должен давать <b>ровное</b> распределение и попадать в частые запросы (иначе запрос «размажется» по всем шардам). Обычно шардируют по <code>user_id</code>/<code>tenant_id</code>, чтобы данные одного пользователя жили в одном шарде.</p>
+<p><b>Минусы:</b> запросы/JOIN между шардами дороги; распределённые транзакции сложны (<a href="#disttx">2PC/Saga</a>); <b>ресардинг</b> болезненный; <b>горячие</b> шарды при плохом ключе. Шардируют только когда реально упёрлись — сначала вертикальное масштабирование, индексы, кэш, реплики.</p>
+<h4>Горизонтальное vs вертикальное</h4>
+<p><b>Горизонтальное</b> — делим <b>строки</b> (это и есть шардинг). <b>Вертикальное</b> — делим <b>колонки/таблицы</b> по назначению (редкие большие поля или подсистемы — в отдельную БД/сервис).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «репликация vs шардирование — что масштабируют?»; «когда мастер-реплики и sync vs async?»; «что такое лаг репликации и read-your-writes?»; «как обычно шардируют?» (range/hash/consistent hashing/directory); «как выбрать ключ шардирования?»; «минусы шардирования?» (cross-shard запросы/транзакции, ресардинг, горячие шарды); «горизонтальное vs вертикальное?».</div>
+</details>
+</div><div class="card" id="dbobjects">
+<h3>Функции, процедуры, триггеры, представления</h3>
+<div class="tldr"><b>Короткий ответ:</b> код на стороне БД. <b>Функция</b> — возвращает значение, вызывается в запросе (<code>SELECT f(x)</code>). <b>Хранимая процедура</b> — выполняет действия и может управлять транзакцией (<code>CALL p()</code>), значение не возвращает. <b>Триггер</b> — функция, срабатывающая автоматически на INSERT/UPDATE/DELETE. <b>View</b> — сохранённый запрос как «виртуальная таблица».</div>
+<details class="more"><summary>Чем отличаются, зачем и подводные камни</summary>
+<h4>Функция vs процедура</h4>
+<ul>
+<li><b>Функция</b> — <b>возвращает</b> результат (скаляр, строку, таблицу), вызывается внутри SQL: <code>SELECT total(order_id)</code>. Обычно выполняется в контексте вызвавшего запроса, транзакцией не управляет.</li>
+<li><b>Процедура</b> (Postgres 11+) — <b>не возвращает</b> значение, вызывается <code>CALL</code>; может делать <b>COMMIT/ROLLBACK</b> внутри — удобно для батчей/ETL.</li>
+<li>Плюсы кода в БД: меньше round-trip'ов сеть↔БД, логика рядом с данными. Минусы: логика «размазана» между приложением и БД, сложнее версионировать/тестировать, вендор-лок (PL/pgSQL).</li>
+</ul>
+<h4>Триггеры</h4>
+<p>Функция, привязанная к таблице и событию: <code>BEFORE/AFTER INSERT/UPDATE/DELETE</code>, на строку (<code>FOR EACH ROW</code>) или на запрос. Применяют для аудита, автозаполнения (<code>updated_at</code>), проверки инвариантов, каскадов. Осторожно: <b>скрытая</b> логика (трудно отлаживать — «почему поменялось?»), просадка на массовых операциях, риск рекурсии.</p>
+<h4>Представления (VIEW)</h4>
+<ul>
+<li><b>VIEW</b> — именованный сохранённый <code>SELECT</code>; обращаешься как к таблице, но данные считаются <b>на лету</b> при каждом запросе. Упрощает сложные запросы, скрывает детали/права. Данные не хранит, не ускоряет.</li>
+<li><b>MATERIALIZED VIEW</b> — <b>хранит</b> результат на диске (быстрое чтение тяжёлого запроса), но данные «застывают» — нужно <code>REFRESH MATERIALIZED VIEW</code> (вручную/по расписанию). По сути — форма денормализации/кэша.</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «функция vs процедура — разница?» (возвращает значение и вызывается в SELECT / CALL и управляет транзакцией); «что такое триггер и его минусы?» (скрытая логика, отладка, производительность); «VIEW vs MATERIALIZED VIEW?» (на лету vs хранит + REFRESH); «зачем/когда выносить логику в БД?».</div>
+</details>
+</div>
+
+<div class="card" id="connpool">
+<h3>Пул соединений к БД (database/sql)</h3>
+<div class="tldr"><b>Короткий ответ:</b> <code>sql.DB</code> в Go — не соединение, а <b>пул соединений</b> (потокобезопасный, один на приложение). Соединение к Postgres — отдельный процесс на стороне БД, поэтому пул без лимитов под нагрузкой кладёт базу. Настраивают: <code>SetMaxOpenConns</code>, <code>SetMaxIdleConns</code>, <code>SetConnMaxLifetime</code>.</div>
+<p class="analogy">Каршеринг вместо личного авто на каждый запрос: взял машину из парка, съездил, вернул. Если парк не ограничить — парковка (БД) переполнится.</p>
+<details class="more"><summary>Настройки, типовые утечки, pgx и PgBouncer</summary>
+<h4>Почему пул, а не соединение на запрос</h4>
+<p>Установка соединения — TCP + TLS + аутентификация (миллисекунды), а в Postgres ещё и <b>форк процесса</b>. Пул держит готовые соединения и переиспользует их. <code>sql.Open</code> не подключается к БД (проверка — <code>db.Ping()</code>), соединения создаются лениво.</p>
+<h4>Три ручки</h4>
+<ul>
+<li><b><code>SetMaxOpenConns(n)</code></b> — потолок открытых соединений. Не задан → пул растёт неограниченно, под всплеском упрётся в <code>max_connections</code> Postgres (дефолт ~100) и начнёт валить ошибки всем.</li>
+<li><b><code>SetMaxIdleConns(n)</code></b> — сколько держать «тёплыми» в простое. Слишком мало → постоянные переподключения; обычно ставят равным или близким к MaxOpen.</li>
+<li><b><code>SetConnMaxLifetime(d)</code></b> — пересоздавать соединения старше d. Важно за балансировщиком/прокси (убивают idle-коннекты) и чтобы после failover трафик переполз на новый мастер.</li>
+</ul>
+<h4>Типовые утечки и зависания</h4>
+<ul>
+<li><b>Не закрыли rows:</b> <code>rows, _ := db.Query(...)</code> без <code>defer rows.Close()</code> (или вышли из цикла до конца итерации) → соединение не вернулось в пул. Несколько таких — пул исчерпан, все запросы висят в ожидании свободного соединения.</li>
+<li><b>Транзакция без Commit/Rollback</b> — держит соединение (и блокировки в БД!) вечно. Паттерн: <code>defer tx.Rollback()</code> сразу после Begin (после Commit он безвреден).</li>
+<li><b>Вложенный запрос в цикле по rows</b> — на том же <code>db</code> берёт второе соединение на каждую итерацию: при MaxOpen=1 — самодедлок.</li>
+</ul>
+<h4>pgx и PgBouncer</h4>
+<p><b>pgx/pgxpool</b> — родной драйвер Postgres: быстрее, бинарный протокол, свой пул. <b>PgBouncer</b> — внешний пулер между приложениями и БД: сотни клиентских коннектов мультиплексирует в десятки серверных (режим transaction pooling; ломает session-фичи вроде prepared statements на уровне сессии — надо учитывать).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «что такое sql.DB — соединение?» (нет, пул); «какие лимиты настраивать и что будет без них?»; «почему запросы зависли, хотя БД жива?» (утечка rows/транзакций, пул исчерпан); «зачем ConnMaxLifetime?» (балансировщики, failover); «что такое PgBouncer и зачем?».</div>
+</details>
+</div>
+
+<div class="card" id="partitioning">
+<h3>Партиционирование таблиц</h3>
+<div class="tldr"><b>Короткий ответ:</b> разбиение одной большой таблицы на <b>секции внутри одного сервера</b> (в PG: <code>PARTITION BY RANGE/LIST/HASH</code>). Запросы читают только нужные секции (partition pruning), старые данные удаляются мгновенным <code>DROP PARTITION</code>. Не путать с шардированием — серверов не добавляет.</div>
+<p class="analogy">Один шкаф с документами, разложенными по папкам-месяцам: ищешь январь — открываешь одну папку; год истёк — выбрасываешь папку целиком, а не перебираешь листы.</p>
+<details class="more"><summary>Виды, зачем, грабли, отличие от шардирования</summary>
+<h4>Виды (Postgres, декларативно с PG 10)</h4>
+<ul>
+<li><b>RANGE</b> — по диапазону (типично — по времени: секция на месяц). Самый частый: логи, события, метрики.</li>
+<li><b>LIST</b> — по перечню значений (по региону, по тенанту).</li>
+<li><b>HASH</b> — равномерно по хешу ключа (когда нет естественного диапазона).</li>
+</ul>
+<h4>Что даёт</h4>
+<ul>
+<li><b>Partition pruning:</b> <code>WHERE created_at &gt;= '2026-06-01'</code> — планировщик читает только нужные секции, остальные даже не открывает.</li>
+<li><b>Дешёвое удаление старого:</b> <code>DROP TABLE logs_2024_01</code> мгновенно вместо <code>DELETE</code> миллионов строк (который ещё и раздует таблицу мёртвыми кортежами — см. автовакуум).</li>
+<li><b>Обслуживание по частям:</b> VACUUM/индексация/бэкап маленькой секции вместо гигантской таблицы; индексы секций меньше и лучше влезают в кэш.</li>
+</ul>
+<h4>Грабли</h4>
+<ul>
+<li>Ключ партиционирования должен входить в PK/уникальные ограничения.</li>
+<li>Запрос <b>без</b> фильтра по ключу сканирует <b>все</b> секции (медленнее, чем одна таблица).</li>
+<li>Секции надо создавать заранее (автоматизируют: pg_partman, cron).</li>
+</ul>
+<h4>Партиционирование vs шардирование</h4>
+<p><b>Партиционирование</b> — один сервер, цель — управляемость и скорость на больших таблицах. <b>Шардирование</b> — разные серверы, цель — масштаб записи/объёма за пределы одной машины. Часто вместе: внутри каждого шарда таблицы ещё и партиционированы.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «чем партиционирование отличается от шардирования?»; «когда партиционировать?» (time-series, логи, ротация старого); «что такое partition pruning?»; «как удалить год старых логов, не положив прод?» (DROP PARTITION vs DELETE).</div>
+</details>
+</div>
+
+<!-- ==================== ИНФРА / РАСПРЕДЕЛЁННЫЕ ==================== -->
+<h2 class="cat" id="c-infra">Инфраструктура и распределённые системы</h2>
+
+<div class="card" id="containers">
+<h3>Контейнеры vs виртуальные машины</h3>
+<div class="tldr"><b>TL;DR:</b> <b>VM</b> — эмулирует железо и тащит целую гостевую ОС (тяжело, но сильная изоляция). <b>Контейнер</b> — процессы на общем ядре хоста, изолированные фичами ядра (лёгко, старт за секунды).</div>
+<p><b>Контейнер — это не мини-ОС.</b> Изоляция достигается двумя механизмами ядра Linux: <b>namespaces</b> (что процесс «видит» — свои PID, сеть, файловую систему) и <b>cgroups</b> (сколько ресурсов может брать — CPU, память). Общее ядро → почти нулевой оверхед, но изоляция слабее, чем у VM.</p>
+<p class="analogy">VM — отдельные дома с собственным фундаментом; контейнеры — квартиры в одном доме (общие стены/коммуникации = ядро), но со своими дверями и счётчиками.</p>
+<p class="see">Docker собирает контейнеры; multi-stage build даёт крошечные Go-образы.</p>
+</div>
+
+<div class="card" id="k8s">
+<h3>Kubernetes — оркестрация контейнеров</h3>
+<div class="tldr"><b>TL;DR:</b> система, которая запускает и следит за контейнерами на кластере машин: масштабирует, перезапускает упавшие, катит обновления без простоя.</div>
+<p>Основные «кубики»:</p>
+<ul>
+<li><b>Pod</b> — минимальная единица: один+ контейнеров с общей сетью. Живёт недолго (умер — создался новый).</li>
+<li><b>Deployment</b> — держит N одинаковых подов, катит обновления (rolling update), откатывает.</li>
+<li><b>Service</b> — постоянный адрес к подам (поды меняются, service стабилен) + балансировка.</li>
+</ul>
+<p><b>Probes (проверки здоровья):</b> <b>liveness</b> — жив ли контейнер (нет → перезапуск); <b>readiness</b> — готов ли к трафику (нет → убрать из балансировки). Связка с graceful shutdown: под получает <b>SIGTERM</b> перед удалением — надо успеть доработать запросы.</p>
+<p class="analogy">Kubernetes — диспетчер такси: следит, чтобы нужное число машин было на линии, заменяет сломанные, распределяет заказы.</p>
+</div>
+
+<div class="card" id="grpc">
+<h3>gRPC и protobuf</h3>
+<div class="tldr"><b>TL;DR:</b> <b>protobuf</b> — компактный бинарный формат данных по схеме; <b>gRPC</b> — быстрый способ вызывать методы чужого сервиса поверх HTTP/2, используя protobuf.</div>
+<p><b>Protobuf (Protocol Buffers)</b>: описываешь структуры в файле <code>.proto</code>, кодогенератор делает типы для твоего языка. Сериализация <b>бинарная</b> → в разы компактнее и быстрее JSON, схема строгая (версионируется).</p>
+<p><b>gRPC</b> — RPC-фреймворк от Google: по <code>.proto</code> генерятся клиент и сервер, общение идёт поверх <b>HTTP/2</b> (мультиплексирование, стриминг). Поддерживает 4 типа вызовов: unary (запрос-ответ), server-stream, client-stream, bidirectional-stream. Стандарт для <b>межсервисного</b> общения; наружу для браузеров чаще REST/JSON (gRPC в браузере ограничен).</p>
+<p class="see">Сравнение с REST/RPC/SOAP — в банке, секция «Сети».</p>
+</div>
+
+<div class="card" id="mq">
+<h3>Kafka и брокеры сообщений</h3>
+<div class="tldr"><b>Короткий ответ:</b> <b>Kafka</b> — распределённый реплицируемый <b>лог коммитов</b>: producer пишет в <b>топик</b> (разбит на <b>партиции</b>), consumer читает <b>pull</b>-моделью. Сообщения <b>не удаляются</b> после чтения (retention — дни/годы), их можно перечитывать. Масштаб — через партиции, отказоустойчивость — через репликацию и consumer-группы.</div>
+<p class="analogy">Не почтовый ящик (забрал письмо — его нет), а <b>журнал</b>: все записи лежат по порядку, каждый читатель держит свою «закладку» (offset) и читает в своём темпе.</p>
+<details class="more"><summary>Топики, партиции, оффсеты, группы, репликация — со схемой</summary>
+<h4>Из чего состоит</h4>
+<ul>
+<li><b>Broker</b> — сервер кластера; хранит партиции. Кластер = несколько брокеров.</li>
+<li><b>Topic</b> — именованный поток сообщений (логическая абстракция «куда писать/откуда читать»). Физически данные лежат в партициях.</li>
+<li><b>Partition</b> — часть топика; это и есть лог на диске. Партиции топика раскиданы по брокерам → горизонтальное масштабирование.</li>
+<li><b>Offset</b> — уникальный монотонно растущий номер записи внутри партиции (позиция). Имеет смысл только в своей партиции.</li>
+<li><b>Producer</b> пишет; <b>Consumer</b> читает; <b>Consumer group</b> — консьюмеры, делящие партиции топика между собой.</li>
+<li><b>Replica</b> — копия партиции на другом брокере (защита от потери данных).</li>
+</ul>
+<svg class="ill" viewBox="0 0 640 214" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+<text x="320" y="15" fill="#5dc9e2" font-size="11" text-anchor="middle">Топик = N партиций (лог с offset) · consumer-группа делит партиции</text>
+<rect x="12" y="86" width="66" height="30" rx="5" fill="#2a2440" stroke="#5a4a7b"/><text x="45" y="105" fill="#c3ccdf" font-size="10" text-anchor="middle">producer</text>
+<line x1="78" y1="101" x2="104" y2="101" stroke="#8b95ab" marker-end="url(#kf)"/>
+<text x="150" y="40" fill="#8b95ab" font-size="10">Топик "orders"</text>
+<text x="112" y="62" fill="#8b95ab" font-size="10">P0</text>
+<rect x="132" y="48" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="145" y="63" fill="#e8ecf4" font-size="9" text-anchor="middle">0</text>
+<rect x="158" y="48" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="171" y="63" fill="#e8ecf4" font-size="9" text-anchor="middle">1</text>
+<rect x="184" y="48" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="197" y="63" fill="#e8ecf4" font-size="9" text-anchor="middle">2</text>
+<rect x="210" y="48" width="26" height="22" fill="#233049" stroke="#3a4a6b"/><text x="223" y="63" fill="#8b95ab" font-size="9" text-anchor="middle">3</text>
+<text x="252" y="63" fill="#8b95ab" font-size="11">→</text>
+<text x="112" y="106" fill="#8b95ab" font-size="10">P1</text>
+<rect x="132" y="92" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="145" y="107" fill="#e8ecf4" font-size="9" text-anchor="middle">0</text>
+<rect x="158" y="92" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="171" y="107" fill="#e8ecf4" font-size="9" text-anchor="middle">1</text>
+<rect x="184" y="92" width="26" height="22" fill="#233049" stroke="#3a4a6b"/><text x="197" y="107" fill="#8b95ab" font-size="9" text-anchor="middle">2</text>
+<text x="226" y="107" fill="#8b95ab" font-size="11">→</text>
+<text x="112" y="150" fill="#8b95ab" font-size="10">P2</text>
+<rect x="132" y="136" width="26" height="22" fill="#22402f" stroke="#3ddc97"/><text x="145" y="151" fill="#e8ecf4" font-size="9" text-anchor="middle">0</text>
+<rect x="158" y="136" width="26" height="22" fill="#233049" stroke="#3a4a6b"/><text x="171" y="151" fill="#8b95ab" font-size="9" text-anchor="middle">1</text>
+<text x="200" y="151" fill="#8b95ab" font-size="11">→</text>
+<rect x="430" y="42" width="196" height="128" rx="7" fill="#171e2e" stroke="#5dc9e2"/>
+<text x="528" y="60" fill="#5dc9e2" font-size="10" text-anchor="middle">consumer-группа "order-svc"</text>
+<rect x="452" y="72" width="150" height="26" rx="5" fill="#1c2438" stroke="#3a4a6b"/><text x="527" y="89" fill="#c3ccdf" font-size="10" text-anchor="middle">C0 ← P0</text>
+<rect x="452" y="104" width="150" height="26" rx="5" fill="#1c2438" stroke="#3a4a6b"/><text x="527" y="121" fill="#c3ccdf" font-size="10" text-anchor="middle">C1 ← P1</text>
+<rect x="452" y="136" width="150" height="26" rx="5" fill="#1c2438" stroke="#3a4a6b"/><text x="527" y="153" fill="#c3ccdf" font-size="10" text-anchor="middle">C2 ← P2</text>
+<line x1="266" y1="59" x2="452" y2="85" stroke="#3a4a6b" stroke-dasharray="3 3"/>
+<line x1="240" y1="103" x2="452" y2="117" stroke="#3a4a6b" stroke-dasharray="3 3"/>
+<line x1="214" y1="147" x2="452" y2="149" stroke="#3a4a6b" stroke-dasharray="3 3"/>
+<text x="320" y="196" fill="#8b95ab" font-size="10.5" text-anchor="middle">каждая партиция — одному консьюмеру группы (порядок внутри партиции сохранён)</text>
+<text x="320" y="210" fill="#8b95ab" font-size="10" text-anchor="middle">консьюмеров &gt; партиций → лишние простаивают · падение C → rebalance</text>
+<defs><marker id="kf" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b95ab"/></marker></defs>
+</svg>
+<h4>Партиции и порядок</h4>
+<p>Порядок гарантирован <b>только внутри партиции</b>, не по всему топику. Сообщения с <b>одинаковым ключом</b> всегда попадают в одну партицию (хеш ключа) → порядок по ключу сохраняется. <b>Параллелизм = число партиций</b>: чтобы два консьюмера читали топик параллельно, нужно ≥2 партиций. Партиции можно добавлять на лету, но: это <b>ломает</b> порядок по ключу (меняется хеш→партиция) и удалить партицию нельзя (только весь топик).</p>
+<h4>Consumer groups</h4>
+<p>Внутри группы каждая партиция назначается <b>ровно одному</b> консьюмеру (чтобы не обрабатывать дважды). Если консьюмеров <b>больше</b>, чем партиций — лишние простаивают. Падение консьюмера → партиции автоматически перераспределяются между оставшимися (<b>rebalance</b>). Разные группы читают один топик <b>независимо</b>, каждая со своими оффсетами (сервис писем и сервис статистики читают одни события в своём темпе).</p><p><b>Ребаланс:</b> при классическом (eager) протоколе на время переназначения партиций <b>вся группа замирает</b> (stop-the-world); cooperative переносит только затронутые партиции. Частые ребалансы (обработка дольше <code>max.poll.interval.ms</code>, флапающий под) → рост лага и дубли.</p>
+<h4>Оффсеты и коммиты</h4>
+<p>Консьюмер отмечает прогресс, <b>коммитя offset</b> (брокер хранит его в служебном топике). При рестарте продолжает с последнего закоммиченного. Важно: в момент времени <b>только один</b> закоммиченный offset на топик-партицию в группе — нельзя выборочно подтвердить отдельные сообщения (как ack в очередях). Ошибка обработки одного сообщения → его отправляют в отдельный топик на повтор (<b>Dead Letter Queue</b>), а offset двигают дальше.</p>
+<h4>Репликация и надёжность</h4>
+<p>Каждая партиция реплицируется <b>replication factor</b> раз. У партиции есть <b>Leader</b> (обслуживает продюсеров и консьюмеров) и <b>Followers</b> (реплицируют данные лидера, набор синхронных — ISR). Лидер упал → контроллер выбирает нового из ISR. Клиенты сначала спрашивают метаданные (кто лидер нужной партиции), подключаясь к любому брокеру.</p>
+<h4>Хранение</h4>
+<p>Партиция физически — это append-only лог, разбитый на <b>сегменты</b> (файлы). Есть активный сегмент для записи; дорос до лимита → новый. Старое удаляется по <b>retention</b> (времени/размеру), сегментами — это дёшево. Последовательная запись/чтение + zero-copy → очень высокая пропускная способность.</p>
+<h4>ZooKeeper / KRaft</h4>
+<p>Раньше метаданные кластера (живость брокеров, кто контроллер, лидеры партиций) хранил <b>ZooKeeper</b> — отдельная распределённая система; его падение почти = падение кластера. В новых версиях от ZooKeeper уходят в пользу встроенного <b>KRaft</b> (Kafka Raft) — метаданные внутри самой Kafka.</p>
+<h4>Kafka vs RabbitMQ</h4>
+<ul>
+<li><b>Kafka</b> — лог: хранит сообщения (перечитывание, несколько независимых групп), pull-модель, огромный поток, event streaming.</li>
+<li><b>RabbitMQ</b> — классическая очередь: сообщение удаляется после <b>ack</b>, push-модель, гибкая маршрутизация (exchanges), удобна для «задача → воркеры».</li>
+</ul>
+<h4>Гарантии доставки</h4>
+<p><b>at-most-once</b> (может потеряться), <b>at-least-once</b> (может задвоиться → обработчик должен быть <b>идемпотентным</b>), <b>exactly-once</b> (в Kafka — через идемпотентного продюсера + транзакции; дороже).</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «что такое топик/партиция/offset?»; «где гарантируется порядок?» (внутри партиции; ключ → одна партиция); «как масштабировать чтение?» (партиции + consumer group); «что при добавлении партиций / падении консьюмера?»; «как отметить обработку?» (commit offset; один на топик-партицию в группе; DLQ на ошибки); «зачем репликация и лидер?»; «Kafka vs RabbitMQ?»; «гарантии доставки?».</div>
+</details>
+</div>
+
+
+<div class="card" id="redis">
+<h3>Redis и кэширование</h3>
+<div class="tldr"><b>TL;DR:</b> Redis — сверхбыстрое in-memory хранилище «ключ-значение» (микросекунды): кэш, счётчики, сессии, rate limiter, распределённые локи. Быстрый, потому что всё в RAM и команды выполняет <b>один поток</b> (нет блокировок) на event loop. Плата: одна медленная команда блокирует всех.</div>
+<p class="analogy">Стол рядом с рабочим местом vs архив в подвале (БД): за частым — тянешься рукой, но на столе мало места, и надо решать, что убирать (eviction) и не устарело ли лежащее (инвалидация).</p>
+<details class="more"><summary>Структуры, персистентность, eviction, атомарность, локи, кластер, беды кэша</summary>
+<h4>Структуры и типовые применения</h4>
+<ul>
+<li><b>string</b> — кэш, счётчики (<code>INCR</code> атомарен); <b>hash</b> — объект по полям; <b>list</b> — очередь/лента; <b>set</b> — уникальные множества, пересечения; <b>sorted set</b> — рейтинги, «топ-N», rate limiter по времени; <b>TTL</b> на любой ключ — сессии, кэш.</li>
+<li><b>Pub/Sub</b> — рассылка «кто слушает сейчас» (без хранения); <b>Streams</b> — лог с consumer groups (мини-Kafka), когда сообщения терять нельзя.</li>
+</ul>
+<h4>Почему быстрый и в чём подвох однопоточности</h4>
+<p>Всё в RAM + один поток команд (нет локов и переключений контекста) + оптимизированные структуры. <b>Подвох:</b> <code>KEYS *</code>, <code>SMEMBERS</code> на миллион, тяжёлый Lua — блокируют <b>все</b> запросы. Правила: <code>SCAN</code> вместо <code>KEYS</code>, <code>UNLINK</code> вместо <code>DEL</code> для больших ключей. С Redis 6 I/O вынесен в потоки, но исполнение команд — по-прежнему одно.</p>
+<h4>Персистентность</h4>
+<p><b>RDB</b> — периодические снапшоты (компактно, быстрый рестарт; теряешь данные с последнего снапшота). <b>AOF</b> — лог каждой операции (надёжнее, вплоть до fsync каждую секунду; файл больше, рестарт дольше). Часто вместе; для чистого кэша персистентность нередко выключают.</p>
+<h4>Память кончилась: eviction</h4>
+<p>По достижении <code>maxmemory</code>: <b>noeviction</b> (ошибка на запись, дефолт) / <b>allkeys-lru</b> / <b>volatile-lru</b> (только ключи с TTL) / <b>allkeys-lfu</b> / <b>volatile-ttl</b> / random. Для кэша — allkeys-lru/lfu; LRU <b>приблизительный</b> (сэмплирование). TTL ≠ eviction: протухание по времени и вытеснение по памяти — независимые механизмы.</p>
+<h4>Атомарность: pipeline vs MULTI/EXEC vs Lua</h4>
+<p><b>Pipeline</b> — пачка команд без ожидания ответов: экономит round-trip'ы, не атомарен. <b>MULTI/EXEC</b> — команды подряд без вклинивания, но <b>без отката</b> и без чтения промежуточных значений (<code>WATCH</code> — оптимистичная проверка). <b>Lua (<code>EVAL</code>)</b> — атомарная процедура с логикой «прочитай-проверь-запиши»: rate limiter, безопасное снятие лока.</p>
+<h4>Распределённый лок</h4>
+<p><code>SET lock:job uuid NX EX 30</code> — атомарно «поставь, если нет, с TTL» (TTL обязателен — иначе упавший клиент держит лок вечно). Снимать Lua-скриптом «удали, только если value = мой uuid». Грабли: работа дольше TTL (нужно продление), failover реплики теряет лок; <b>Redlock</b> спорен — для критичных инвариантов лучше advisory lock в Postgres или etcd/ZooKeeper.</p>
+<h4>Масштабирование</h4>
+<p><b>Репликация</b> master→replica (async, лаг) → чтение и резерв. <b>Sentinel</b> — наблюдатели с кворумом: автоматический failover (HA без шардинга). <b>Cluster</b> — шардинг: 16384 hash-слота по мастерам; multi-key операции — только в одном слоте (hash-теги <code>{user:42}:cart</code>).</p>
+<h4>Кэширование: паттерны и беды</h4>
+<ul>
+<li><b>Cache-aside</b> (основной): читай кэш → мимо → БД → положи в кэш; при записи — обнови БД и <b>удали</b> ключ (не обновляй — меньше гонок). <b>Write-through</b> — писать в оба синхронно; <b>write-behind</b> — в кэш сразу, в БД асинхронно (риск потери).</li>
+<li><b>Stampede</b> — горячий ключ протух, сотни запросов пересчитывают одновременно → <code>singleflight</code>, блокировка, джиттер TTL.</li>
+<li><b>Penetration</b> — запросы к <b>несуществующим</b> ключам всегда летят в БД → кэшировать «пусто» с коротким TTL, Bloom-фильтр.</li>
+<li><b>Avalanche</b> — массовое протухание разом / падение кэша → джиттер TTL, прогрев, rate limit к БД.</li>
+</ul>
+<div class="qbox"><b>Спрашивают на собесе:</b> «почему Redis быстрый при одном потоке?» (RAM + event loop; но медленная команда блокирует всех); «что при переполнении памяти?» (maxmemory + eviction-политики); «pipeline vs транзакция vs Lua?»; «как сделать распределённый лок и какие грабли?» (SET NX EX + Lua-снятие, TTL, Redlock спорен); «Sentinel vs Cluster?» (failover vs шардинг); «stampede/penetration/avalanche — разница и защита?»; «Redis vs Memcached?» (структуры/персистентность/кластер vs простой многопоточный кэш).</div>
+</details>
+</div>
+
+<div class="card" id="lsm">
+<h3>LSM-tree vs B-tree</h3>
+<div class="tldr"><b>Короткий ответ:</b> два способа хранить данные на диске. <b>B-tree</b> (Postgres, MySQL) пишет «на место» — read-optimized. <b>LSM-tree</b> (Cassandra, RocksDB, ClickHouse-подобные) копит записи в памяти и сбрасывает на диск неизменяемыми отсортированными файлами — write-optimized (запись последовательная).</div>
+<p class="analogy">B-tree — картотека: каждую карточку сразу ставишь на своё место (ходьба по ящикам). LSM — стопка входящих на столе: быстро кидаешь сверху, а по ночам сортируешь пачки и подшиваешь в архив.</p>
+<details class="more"><summary>memtable, SSTable, компакция, Bloom-фильтры, кто на чём</summary>
+<h4>Как пишет LSM</h4>
+<ol>
+<li>Запись → <b>memtable</b> (отсортированная структура в памяти) + WAL (на случай сбоя). Это быстро: RAM + последовательный лог.</li>
+<li>Memtable заполнился → сбрасывается на диск <b>неизменяемым</b> отсортированным файлом — <b>SSTable</b>.</li>
+<li>Фоновая <b>компакция</b> сливает SSTable между собой (как merge sort), выкидывая перезаписанные/удалённые версии.</li>
+</ol>
+<h4>Чем платим (чтение и компакция)</h4>
+<ul>
+<li>Ключ может лежать в memtable или любом из SSTable → чтение проверяет несколько файлов. Спасают <b>Bloom-фильтры</b> — вероятностная структура «в этом файле ключа <b>точно нет</b> / возможно есть»: пропускает большинство файлов без чтения.</li>
+<li><b>Write amplification:</b> компакция многократно переписывает данные — фоновая нагрузка на диск/CPU.</li>
+<li>Удаление — не удаление, а запись «надгробия» (tombstone), физически чистится при компакции.</li>
+</ul>
+<h4>Кто на чём</h4>
+<p><b>B-tree:</b> Postgres, MySQL/InnoDB — OLTP с балансом чтения/записи, диапазоны, транзакции. <b>LSM:</b> Cassandra/ScyllaDB, RocksDB/LevelDB (движок для Kafka Streams, CockroachDB, TiKV), HBase — write-heavy: события, метрики, time-series, очереди записи.</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «почему Cassandra быстро пишет?» (память + последовательный сброс SSTable); «что такое memtable/SSTable/компакция?»; «зачем Bloom-фильтр?» («точно нет» без чтения файла); «чем платим за быструю запись?» (чтение по нескольким файлам, write amplification); «B-tree vs LSM — когда что?» (read- vs write-optimized).</div>
+</details>
+</div>
+
+<div class="card" id="docdb">
+<h3>Документные БД (MongoDB)</h3>
+<div class="tldr"><b>Короткий ответ:</b> хранят JSON-подобные документы (в Mongo — бинарный <b>BSON</b>) с гибкой схемой. Принцип моделирования: <b>что читается вместе — хранится вместе</b> (вложенность вместо JOIN). Атомарность — на уровне одного документа; репликация и шардинг из коробки.</div>
+<p class="analogy">Реляционка — картотека с перекрёстными ссылками (заказ в одном ящике, позиции в другом). Документная — папка клиента, где всё его лежит вместе: открыл одну папку — увидел всё.</p>
+<details class="more"><summary>Моделирование, replica set, шардинг, aggregation, транзакции, vs jsonb</summary>
+<h4>Моделирование: вложить или сослаться</h4>
+<p><b>Вложить</b> (embed) — когда данные читаются вместе и принадлежат родителю (позиции заказа, адреса пользователя): одно чтение, атомарное обновление. <b>Сослаться</b> (reference) — когда сущность разделяемая или растёт неограниченно (автор ↔ статьи; комментарии на миллион). Анти-паттерн — моделировать «как таблицы» и склеивать всё через <code>$lookup</code>: значит, нужна была реляционка.</p>
+<h4>Replica set и шардинг</h4>
+<ul>
+<li><b>Replica set:</b> primary (запись) + secondaries; при падении primary — <b>автоматические выборы</b> нового. <code>readPreference</code> = чтение с secondary (eventual, лаг); <b>write concern</b> (<code>w: majority</code>) — сколько узлов подтвердили запись (скорость vs надёжность).</li>
+<li><b>Шардинг:</b> <code>mongos</code>-роутер → шарды (каждый — replica set); <b>shard key</b> выбирать как в SQL-шардинге: монотонный (время, ObjectId) → горячий чанк; hashed — ровно, но без range-запросов.</li>
+</ul>
+<h4>Aggregation pipeline и индексы</h4>
+<p>Конвейер стадий: <code>$match → $group → $sort → $project → $lookup</code> (left join). <code>$match</code>/<code>$sort</code> — в начало (используют индексы, режут объём). Индексы — B-tree: составные (левый префикс!), уникальные, TTL-индексы (авточистка), text/geo; <code>explain()</code>, COLLSCAN = seq scan.</p>
+<h4>Транзакции</h4>
+<p>Один документ (со всеми вложенностями) — атомарен всегда. Multi-document ACID — с 4.0/4.2, но дороже; правило: если транзакции нужны постоянно — модель данных, вероятно, реляционная.</p>
+<h4>Mongo vs Postgres jsonb</h4>
+<p>«Гибкая схема» есть и в Postgres: <code>jsonb</code> + GIN-индекс, рядом — обычные транзакции и JOIN. Mongo выбирают за модель целиком + масштабирование из коробки (replica set, шардинг, mongos). Честный ответ: «для гибких атрибутов внутри реляционного ядра — jsonb; для документной модели с горизонтальным масштабом — Mongo».</p>
+<div class="qbox"><b>Спрашивают на собесе:</b> «когда Mongo, когда реляционка?»; «embed vs reference?»; «что атомарно в Mongo?» (документ; multi-doc транзакции — дорогой запасной выход); «как устроен failover?» (replica set, выборы); «Mongo vs Postgres jsonb?»; «почему частый $lookup — плохой знак?».</div>
+</details>
+</div>
+
+<div class="card" id="cap">
+<h3>CAP-теорема и консистентность</h3>
+<div class="tldr"><b>TL;DR:</b> в распределённой системе при сбое сети (Partition) приходится выбирать между <b>Consistency</b> (все видят одни данные) и <b>Availability</b> (система отвечает). Все три сразу — нельзя.</div>
+<ul>
+<li><b>C (Consistency)</b> — любой читатель видит самую свежую запись.</li>
+<li><b>A (Availability)</b> — система всегда отвечает (пусть и не самыми свежими данными).</li>
+<li><b>P (Partition tolerance)</b> — работает, даже если часть узлов потеряла связь.</li>
+</ul>
+<p>Сеть ненадёжна, поэтому <b>P обязателен</b> — реальный выбор между <b>CP</b> (жертвуем доступностью ради согласованности — банки) и <b>AP</b> (отвечаем всегда, данные «догонят» — соцсети). <b>Eventual consistency</b> («в конечном счёте согласованно») — компромисс AP-систем: реплики временно расходятся, но сходятся. Связано с синхронной (CP) vs асинхронной (AP) репликацией.</p>
+<p class="see">Синхронная vs асинхронная репликация — карточка «Шардирование и репликация».</p>
+</div>
+
+<div class="card" id="disttx">
+<h3>Распределённые транзакции: 2PC и Saga</h3>
+<div class="tldr"><b>TL;DR:</b> внутри одной БД транзакция — «всё или ничего». Между сервисами атомарности нет — нужны 2PC или Saga.</div>
+<p><b>Проблема:</b> заказ = списать оплату (сервис A) + зарезервировать товар (сервис B). Одной ACID-транзакцией это не обернуть — БД разные.</p>
+<ul>
+<li><b>2PC (two-phase commit):</b> координатор спрашивает всех «готовы?» (prepare), затем «коммить» (commit). Даёт атомарность, но <b>блокирующий и хрупкий</b>: упал координатор между фазами — участники висят с локами. В микросервисах избегают.</li>
+<li><b>Saga:</b> цепочка локальных транзакций, у каждой — <b>компенсирующее действие</b> на откат. <b>Оркестрация</b> (центральный координатор ведёт шаги) или <b>хореография</b> (сервисы реагируют на события). Даёт <i>итоговую</i> согласованность, а не мгновенную.</li>
+<li><b>Обязательно:</b> идемпотентность шагов + <b>Outbox</b> для надёжной публикации событий (не потерять/не задвоить).</li>
+</ul>
+<p class="analogy">Поездка из рейсов разных авиакомпаний: не забронировался второй рейс — отменяешь (компенсируешь) первый.</p>
+</div>
+
+<div class="card" id="resilience">
+<h3>Устойчивость: retry · circuit breaker · backpressure</h3>
+<div class="tldr"><b>TL;DR:</b> как сервис переживает сбои и перегрузку зависимостей, не падая каскадом.</div>
+<ul>
+<li><b>Retry с backoff:</b> повтор при временной ошибке — с экспоненциальной задержкой и jitter, ограниченным числом попыток и только для <b>идемпотентных</b> операций.</li>
+<li><b>Circuit breaker («предохранитель»):</b> после серии ошибок внешнего сервиса перестаём его дёргать (состояние <code>open</code> → fail fast), через паузу пробуем (<code>half-open</code>). Защищает от каскадных падений и «добивания» лежащего сервиса.</li>
+<li><b>Backpressure (обратное давление):</b> потребитель не успевает — не копим бесконечно, а притормаживаем производителя: ограниченная очередь/буфер, блокирующая запись в канал, ответ <code>429</code>. В Go естественно выражается небуферизированным/ограниченным каналом.</li>
+<li><b>Timeout + context:</b> любой внешний вызов — с таймаутом и отменой по <code>ctx</code>.</li>
+</ul>
+<p class="analogy">Предохранитель в щитке: при перегрузке размыкает цепь, чтобы не сгорел весь дом.</p>
+</div>
+
+<!-- ==================== ИСТОЧНИКИ ==================== -->
+<h2 class="cat" id="c-src">Источники и что почитать глубже</h2>
+<div class="card" id="sources">
+<h3>Ссылки на первоисточники</h3>
+<p>Карточки выше — сжатая выжимка «с нуля». Для глубины:</p>
+<ul>
+<li><b>Планировщик Go:</b> <a href="https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html">Ardan Labs — Scheduling in Go</a>, <a href="https://backendinterview.ru/goLang/scheduler.html">backendinterview.ru</a></li>
+<li><b>Сборка мусора:</b> <a href="https://www.ardanlabs.com/blog/2018/12/garbage-collection-in-go-part1-semantics.html">Ardan Labs — GC semantics</a></li>
+<li><b>Каналы под капотом:</b> <a href="https://habr.com/ru/articles/490336/">Хабр — анатомия каналов</a></li>
+<li><b>Хеш-таблицы Go:</b> <a href="https://habr.com/ru/post/457728/">Хабр — детали реализации map</a></li>
+<li><b>Индексы Postgres:</b> <a href="https://habr.com/ru/companies/postgrespro/articles/326096/">серия Postgres Pro</a></li>
+<li><b>System Design:</b> <a href="https://github.com/donnemartin/system-design-primer">system-design-primer</a></li>
+<li><b>Книги:</b> «The Go Programming Language» (Donovan &amp; Kernighan); «Concurrency in Go» (Katherine Cox-Buday); «Designing Data-Intensive Applications» (Kleppmann) — про БД/распределённые системы.</li>
+</ul>
+</div>
+
+</main>
+<script>
+const cards=[...document.querySelectorAll('.card')];
+const cats=[...document.querySelectorAll('h2.cat')];
+const toc=document.getElementById('toc');
+cats.forEach(cat=>{
+  toc.insertAdjacentHTML('beforeend',`<div class="h">${cat.textContent}</div>`);
+  let el=cat.nextElementSibling;
+  while(el && el.classList.contains('card')){
+    const h=el.querySelector('h3').textContent;
+    toc.insertAdjacentHTML('beforeend',`<a href="#${el.id}">${h}</a>`);
+    el=el.nextElementSibling;
+  }
+});
+document.getElementById('stats').textContent=`${cards.length} понятий`;
+const input=document.getElementById('search');
+input.addEventListener('input',()=>{
+  const q=input.value.trim().toLowerCase();let n=0;
+  cards.forEach(c=>{const hit=!q||c.textContent.toLowerCase().includes(q);c.classList.toggle('hidden',!hit);if(hit)n++;});
+  cats.forEach(cat=>{let el=cat.nextElementSibling,any=false;while(el&&el.classList.contains('card')){if(!el.classList.contains('hidden'))any=true;el=el.nextElementSibling;}cat.classList.toggle('hidden',!any);});
+  document.getElementById('stats').textContent=q?`${n} из ${cards.length}`:`${cards.length} понятий`;
+});
+</script>
+<script>
+(function(){
+  var h=document.querySelector('header'); if(!h) return;
+  var last=window.scrollY, ticking=false;
+  function mob(){ return window.matchMedia('(max-width:640px)').matches; }
+  function upd(){
+    var y=window.scrollY;
+    if(!mob()){ h.classList.remove('hdr-hidden'); last=y; ticking=false; return; }
+    if(y>last && y>h.offsetHeight){ h.classList.add('hdr-hidden'); }
+    else if(y<last){ h.classList.remove('hdr-hidden'); }
+    last=y; ticking=false;
+  }
+  window.addEventListener('scroll',function(){ if(!ticking){ requestAnimationFrame(upd); ticking=true; } },{passive:true});
+})();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
+<script>
+(function(){
+  function hlGo(src){
+    var i=0,n=src.length,out='';
+    function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function plain(seg){
+      seg=esc(seg);
+      seg=seg.replace(/\b(func|package|import|return|defer|go|chan|range|select|case|default|switch|if|else|for|var|const|type|struct|interface|map|break|continue|fallthrough|goto)\b/g,'<span class="k">$1</span>');
+      seg=seg.replace(/\b(nil|true|false|iota)\b/g,'<span class="c1">$1</span>');
+      seg=seg.replace(/\b(int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|uintptr|byte|rune|float32|float64|complex64|complex128|string|bool|error|any)\b/g,'<span class="ty">$1</span>');
+      seg=seg.replace(/\b(\d[\d_.xXa-fA-F]*)\b/g,'<span class="nu">$1</span>');
+      return seg;
+    }
+    while(i<n){
+      var c=src[i], c2=src.substr(i,2);
+      if(c2==='//'){var j=src.indexOf('\n',i);if(j<0)j=n;out+='<span class="cm">'+esc(src.slice(i,j))+'</span>';i=j;}
+      else if(c2==='/*'){var j=src.indexOf('*/',i+2);j=j<0?n:j+2;out+='<span class="cm">'+esc(src.slice(i,j))+'</span>';i=j;}
+      else if(c==='`'){var j=src.indexOf('`',i+1);j=j<0?n:j+1;out+='<span class="st">'+esc(src.slice(i,j))+'</span>';i=j;}
+      else if(c==='"'){var j=i+1;while(j<n&&src[j]!=='"'){if(src[j]==='\\')j++;j++;}j=Math.min(j+1,n);out+='<span class="st">'+esc(src.slice(i,j))+'</span>';i=j;}
+      else if(c==="'"){var j=i+1;while(j<n&&src[j]!=="'"){if(src[j]==='\\')j++;j++;}j=Math.min(j+1,n);out+='<span class="st">'+esc(src.slice(i,j))+'</span>';i=j;}
+      else{var j=i;while(j<n){var d2=src.substr(j,2),d=src[j];if(d2==='//'||d2==='/*'||d==='`'||d==='"'||d==="'")break;j++;}out+=plain(src.slice(i,j));i=j;}
+    }
+    return out;
+  }
+  document.querySelectorAll('pre.go').forEach(function(el){ el.innerHTML=hlGo(el.textContent); });
+})();
+</script>
+<script>
+/* мобильная читаемость схем: обернуть SVG в горизонтальный скроллер */
+document.querySelectorAll('svg.ill').forEach(function(svg){
+  if(svg.parentElement && svg.parentElement.classList.contains('illwrap')) return;
+  var w=document.createElement('div'); w.className='illwrap';
+  svg.parentNode.insertBefore(w,svg); w.appendChild(svg);
+  var h=document.createElement('div'); h.className='illhint'; h.textContent='\u2194 схему можно прокрутить вбок';
+  w.parentNode.insertBefore(h,w.nextSibling);
+});
+</script>
+</body>
+</html>
