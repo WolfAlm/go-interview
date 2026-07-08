@@ -1212,7 +1212,7 @@ func FindSlowest(statuses []DeviceStatus, n int) []DeviceStatus {
 }</code></pre><p class="note">Пишем в <b>свою ячейку</b> предвыделенного среза — без гонки и без лока, порядок сохранён. <code>errgroup</code> с <code>SetLimit</code> заменяет ручной пул и прокидывает отмену через <code>ctx</code>, а <code>checkOne</code> стоит вернуть ошибку, а не глотать.</p></div></div></details>
 </article>
 </div></details>
-<details class="sec" id="slices"><summary>Слайсы и строки<span class="cnt">8</span></summary><div class="body"><p class="intro">Слайс — дескриптор (ptr/len/cap) поверх общего массива; строка неизменяема. Почти все задачи — про то, когда append мутирует родителя, а когда реаллоцирует и «отвязывается». Держи в голове: влезло в cap → пишем в общий массив.</p><article class="task" data-tid="20">
+<details class="sec" id="slices"><summary>Слайсы и строки<span class="cnt">9</span></summary><div class="body"><p class="intro">Слайс — дескриптор (ptr/len/cap) поверх общего массива; строка неизменяема. Почти все задачи — про то, когда append мутирует родителя, а когда реаллоцирует и «отвязывается». Держи в голове: влезло в cap → пишем в общий массив.</p><article class="task" data-tid="20">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет</span><h3>append в подслайс: два print</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведут два <code>fmt.Println</code> и почему?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1423,8 +1423,63 @@ func main() {
     }
 }</code></pre><p class="note">Если не нужна общая мутируемость — держи <b>значения</b> (<code>[]int</code>): нет ни aliasing, ни проблемы с невидимым <code>append</code>. Указатели в слайсе оправданы, только когда элементы реально надо менять через общий доступ.</p></div></div></details>
 </article>
-</div></details>
-<details class="sec" id="channels"><summary>Каналы<span class="cnt">4</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
+</div>
+<article class="task" data-tid="68">
+<div class="thead"><span class="b ks">Серый</span><span class="ttag">реализовать</span><h3>Разворот списка, N-й с конца, пересечение слайсов</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Реализуй три задачки: разворот односвязного списка, поиск N-го элемента с конца и пересечение двух слайсов.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type Node struct {
+    val  int
+    next *Node
+}
+
+func reverse(head *Node) *Node           { /* реализуй */ }
+func nthFromEnd(head *Node, n int) *Node { /* реализуй */ }
+func intersect(a, b []int) []int         { /* реализуй */ }</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">// разворот односвязного списка — итеративно, O(n), O(1) памяти
+func reverse(head *Node) *Node {
+    var prev *Node
+    for cur := head; cur != nil; {
+        cur.next, prev, cur = prev, cur, cur.next
+    }
+    return prev // prev — новая голова
+}
+
+// N-й с конца — два указателя с разрывом N (один проход)
+func nthFromEnd(head *Node, n int) *Node {
+    fast := head
+    for i := 0; i &lt; n; i++ {
+        if fast == nil {
+            return nil // список короче N
+        }
+        fast = fast.next
+    }
+    slow := head
+    for fast != nil {
+        fast, slow = fast.next, slow.next
+    }
+    return slow
+}
+
+// пересечение двух слайсов — O(n+m) через map-счётчик
+func intersect(a, b []int) []int {
+    cnt := map[int]int{}
+    for _, x := range a {
+        cnt[x]++
+    }
+    var res []int
+    for _, x := range b {
+        if cnt[x] &gt; 0 {
+            res = append(res, x)
+            cnt[x]--
+        }
+    }
+    return res
+}</code></pre><div class="refx"><p><b>Разворот:</b> идём по списку, разворачивая указатели <code>next</code> назад; <code>prev</code> в конце — новая голова. Главное — не потерять <code>cur.next</code> до перезаписи (в Go выручает множественное присваивание).</p><p><b>N-й с конца:</b> «быстрый» указатель уходит вперёд на N, затем двигаем оба до конца — «медленный» окажется на N-м с конца. Один проход, без подсчёта длины.</p><p><b>Пересечение:</b> счётчик по первому слайсу, потом идём по второму и берём, пока счётчик &gt; 0 (учитывает дубликаты). O(n+m) времени, O(n) памяти.</p></div></div></details>
+</article>
+</details>
+<details class="sec" id="channels"><summary>Каналы<span class="cnt">5</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет</span><h3>Два worker() подряд — 3 или 6 секунд?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Сколько отработает <code>main</code> — 3 или 6с? Почему? Как ускорить до 3?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1609,8 +1664,69 @@ func main() {
     }
 }</code></pre><p class="note">WaitGroup всегда передавать по указателю (или брать из замыкания) — копия ломает счётчик. Сообщения нумерованы → проще собрать в срез по индексу: без канала, без гонок, порядок сохранён.</p></div></div></details>
 </article>
-</div></details>
-<details class="sec" id="maps"><summary>Мапы и интерфейсы<span class="cnt">6</span></summary><div class="body"><p class="intro">map не потокобезопасна и её порядок обхода случайный; ключ должен быть comparable. Интерфейс равен nil только когда пусты и тип, и значение; type assertion строгий (T и *T — разные типы).</p><article class="task" data-tid="32">
+</div>
+<article class="task" data-tid="67">
+<div class="thead"><span class="b ks">Серый</span><span class="ttag">что выведет · найти баг</span><h3>Канал цен + бесконечный for {} (deadlock + общая мапа)</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Как поведёт себя эта программа?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">func RunWriter() &lt;-chan map[string]int {
+    prices := make(chan map[string]int)
+    go func() {
+        currentPrice := map[string]int{"AAPL": 163, "USD": 117, "EUR": 124, "NVDA": 234}
+        for i := 1; i &lt; 5; i++ {
+            for key, value := range currentPrice {
+                currentPrice[key] = int(float64(value) * 1.3)
+            }
+            prices &lt;- currentPrice
+            time.Sleep(100 * time.Millisecond)
+        }
+    }()
+    return prices
+}
+
+func main() {
+    p := RunWriter()
+    var prices []map[string]int
+    for {
+        prices = append(prices, &lt;-p)
+    }
+    for _, price := range prices {
+        fmt.Println(price)
+    }
+}</code></pre>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b>Выведет:</b> <code>fatal error: all goroutines are asleep - deadlock!</code></p><p>Горутина-писатель отправляет <b>4</b> значения (i=1..4) и завершается, <b>не закрывая</b> канал. <code>main</code> читает в бесконечном <code>for {}</code> — после 4 приёмов пятый <code>&lt;-p</code> блокируется навсегда (отправителей больше нет, канал не закрыт) → все горутины спят → deadlock. Второй цикл (печать) недостижим.</p><p><b>Скрытая ловушка</b> (даже если убрать deadlock): в канал каждый раз шлётся <b>одна и та же</b> мапа (<code>currentPrice</code> — общий референс, мутируется на месте), поэтому все элементы <code>prices</code> указывали бы на одну мапу с финальными значениями.</p></div></details>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Изменённые строки подсвечены.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">func RunWriter() &lt;-chan map[string]int {
+    prices := make(chan map[string]int)
+    go func() {
+        defer close(prices)                     // ← закрываем, когда всё отправили
+        currentPrice := map[string]int{"AAPL": 163, "USD": 117, "EUR": 124, "NVDA": 234}
+        for i := 1; i &lt; 5; i++ {
+            snapshot := make(map[string]int, len(currentPrice)) // ← копия на отправку
+            for key, value := range currentPrice {
+                currentPrice[key] = int(float64(value) * 1.3)
+                snapshot[key] = currentPrice[key]               // ←
+            }
+            prices &lt;- snapshot                  // ← шлём копию, а не общий референс
+            time.Sleep(100 * time.Millisecond)
+        }
+    }()
+    return prices
+}
+
+func main() {
+    p := RunWriter()
+    var prices []map[string]int
+    for v := range p {                          // ← range сам завершится на close
+        prices = append(prices, v)
+    }
+    for _, price := range prices {
+        fmt.Println(price)
+    }
+}</code></pre><div class="refx"><p><b>Два бага:</b> (1) писатель не закрывал канал → <code>main</code> в бесконечном <code>for {}</code> вис после 4 приёмов (deadlock). Лечим: <code>defer close(prices)</code> и чтение через <code>for v := range p</code> — оно само остановится на закрытии. (2) слали общий референс на мапу → все элементы указывали бы на одну и ту же мапу; шлём <b>копию</b> (snapshot).</p></div></div></details>
+</article>
+</details>
+<details class="sec" id="maps"><summary>Мапы и интерфейсы<span class="cnt">7</span></summary><div class="body"><p class="intro">map не потокобезопасна и её порядок обхода случайный; ключ должен быть comparable. Интерфейс равен nil только когда пусты и тип, и значение; type assertion строгий (T и *T — разные типы).</p><article class="task" data-tid="32">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет · найти баг</span><h3>3 горутины пишут в map</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет этот код?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">x := make(map[int]int, 1)
@@ -1808,7 +1924,36 @@ func genPassword(step int) (res string) {
     }
     return
 }</code></pre><div class="refx"><p><b>Идея:</b> перебор — трактуем номер шага как число в системе счисления с основанием <code>len(alphabet)</code>, генерим комбинации по возрастанию длины.</p><p><b>Константная сложность при огранич. длине:</b> <b>rainbow table</b> (предпосчитанные хеши). <b>Сложность:</b> O(aⁿ); прообраз n-битного хеша — O(2ⁿ).</p><p><b>Атака/защита:</b> timing-attack → сравнение за константное время (<code>hmac.Equal</code>), лимит попыток, TTL для одноразовых кодов. Разработчику усложнить: криптостойкий хеш (bcrypt/argon2), <b>соль</b>.</p></div></div></details>
-</article></div></details>
+</article></div>
+<article class="task" data-tid="69">
+<div class="thead"><span class="b ks">Серый</span><span class="ttag">реализовать</span><h3>Интерфейс Shape (круг/квадрат) + сумма площадей</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Реализуй интерфейс <code>Shape</code> (метод <code>Area()</code>) для круга и квадрата и посчитай сумму площадей слайса фигур.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type Shape interface { Area() float64 }
+
+type Square struct{ a float64 }
+type Circle struct{ r float64 }
+// реализуй Area() для обоих и функцию total
+
+func total(shapes []Shape) float64 { /* реализуй */ }</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">type Shape interface { Area() float64 }
+
+type Square struct{ a float64 }
+func (s Square) Area() float64 { return s.a * s.a }
+
+type Circle struct{ r float64 }
+func (c Circle) Area() float64 { return math.Pi * c.r * c.r }
+
+func total(shapes []Shape) (sum float64) {
+    for _, s := range shapes {
+        sum += s.Area()
+    }
+    return
+}
+// total([]Shape{Square{2}, Circle{1}})</code></pre><div class="refx"><p>Оба типа <b>неявно</b> удовлетворяют <code>Shape</code> (реализовали <code>Area()</code>) — никакого <code>implements</code> не нужно. <code>total</code> работает с любым <code>Shape</code> <b>полиморфно</b>, ничего не зная о конкретных типах. Это и есть полиморфизм в Go через интерфейсы.</p></div></div></details>
+</article>
+</details>
 <details class="sec" id="goroutines"><summary>Горутины<span class="cnt">2</span></summary><div class="body"><p class="intro">Классика на захват переменной цикла и на то, что main не ждёт горутины. С Go 1.22 переменная цикла — per-iteration, но на собесе нужно знать оба поведения и назвать версию.</p><article class="task" data-tid="38">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет · найти баг</span><h3>Захват переменной цикла в горутинах</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет этот код?</p>
