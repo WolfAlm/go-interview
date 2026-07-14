@@ -1480,7 +1480,7 @@ func intersect(a, b []int) []int {
 }</code></pre><div class="refx"><p><b>Разворот:</b> идём по списку, разворачивая указатели <code>next</code> назад; <code>prev</code> в конце — новая голова. Главное — не потерять <code>cur.next</code> до перезаписи (в Go выручает множественное присваивание).</p><p><b>N-й с конца:</b> «быстрый» указатель уходит вперёд на N, затем двигаем оба до конца — «медленный» окажется на N-м с конца. Один проход, без подсчёта длины.</p><p><b>Пересечение:</b> счётчик по первому слайсу, потом идём по второму и берём, пока счётчик &gt; 0 (учитывает дубликаты). O(n+m) времени, O(n) памяти.</p></div></div></details>
 </article>
 </details>
-<details class="sec" id="channels"><summary>Каналы<span class="cnt">5</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
+<details class="sec" id="channels"><summary>Каналы<span class="cnt">6</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет</span><h3>Два worker() подряд — 3 или 6 секунд?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Сколько отработает <code>main</code> — 3 или 6с? Почему? Как ускорить до 3?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1725,6 +1725,26 @@ func main() {
         fmt.Println(price)
     }
 }</code></pre><div class="refx"><p><b>Два бага:</b> (1) писатель не закрывал канал → <code>main</code> в бесконечном <code>for {}</code> вис после 4 приёмов (deadlock). Лечим: <code>defer close(prices)</code> и чтение через <code>for v := range p</code> — оно само остановится на закрытии. (2) слали общий референс на мапу → все элементы указывали бы на одну и ту же мапу; шлём <b>копию</b> (snapshot).</p></div></div></details>
+</article><article class="task" data-tid="76">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что выведет</span><h3>select над двумя закрытыми каналами</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Что выведет и почему?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">func main() {
+    first := make(chan string, 1)
+    close(first)
+    second := make(chan string)
+    close(second)
+
+    select {
+    case first &lt;- "&lt;-":
+        fmt.Println("first")
+    case &lt;-second:
+        fmt.Println("second")
+    }
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b>Недетерминированно: либо напечатает <code>second</code>, либо упадёт с <code>panic: send on closed channel</code></b> — примерно 50/50 от запуска к запуску (проверено: на 20 запусков ~11 <code>second</code> / ~9 паник).</p></div></details>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Ключ к задаче — обе ветки «готовы»:</b></p><ul><li><b>Чтение из закрытого канала</b> никогда не блокирует: <code>&lt;-second</code> мгновенно возвращает zero value (<code>""</code>, ok=false). Ветка готова.</li><li><b>Отправка в закрытый канал</b> — тоже «готовая» операция: она не блокируется, а сразу выполняется… и <b>паникует</b>. Буфер (cap 1) не спасает — в закрытый канал нельзя писать вообще.</li></ul><p><b><code>select</code> выбирает случайную из готовых веток</b> (равновероятно, чтобы не было starvation). Выпала <code>&lt;-second</code> → печатает <code>second</code> и корректно завершается; выпала <code>first &lt;- ...</code> → <code>panic: send on closed channel</code>. Поэтому «что выведет» — вопрос с подвохом: <b>поведение разное от запуска к запуску</b>, и это главный ожидаемый ответ.</p><p><b>Проверяют аксиомы каналов:</b> (1) чтение из закрытого — не блокирует, отдаёт zero value; (2) запись в закрытый — паника всегда, буфер не важен; (3) select при нескольких готовых ветках выбирает <b>случайно</b>. Бонус: строка <code>"&lt;-"</code> в отправке — визуальный шум, чтобы запутать; на семантику не влияет.</p><p><b>Follow-up, который могут спросить:</b> а если убрать <code>close(second)</code>? Тогда готова только ветка отправки → гарантированная паника. А если убрать оба <code>close</code>? Отправка в <code>first</code> влезает в буфер → всегда <code>first</code>.</p></div></div></details>
 </article>
 </details>
 <details class="sec" id="maps"><summary>Мапы и интерфейсы<span class="cnt">8</span></summary><div class="body"><p class="intro">map не потокобезопасна и её порядок обхода случайный; ключ должен быть comparable. Интерфейс равен nil только когда пусты и тип, и значение; type assertion строгий (T и *T — разные типы).</p><article class="task" data-tid="32">
