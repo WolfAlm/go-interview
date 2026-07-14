@@ -1,4 +1,4 @@
-const CACHE = 'go-interview-v34';
+const CACHE = 'go-interview-v35';
 const ASSETS = [
   './',
   './index.html',
