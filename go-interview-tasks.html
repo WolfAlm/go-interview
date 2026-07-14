@@ -1794,7 +1794,7 @@ fmt.Println("x[1] =", x[1])</code></pre>
 var i interface{} = p
 fmt.Println(p == nil) // ?
 fmt.Println(i == nil) // ?</code></pre>
-<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b>До Go 1.22:</b> все горутины делят одну <code>i</code> → чаще всего печатают <code>5 5 5 5 5</code> (цикл успевает завершиться). <b>С Go 1.22:</b> переменная цикла своя на каждой итерации → <code>0..4</code> в случайном порядке.</p></div></details>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b><code>p == nil</code> → true, <code>i == nil</code> → false.</b> Интерфейс — два слова (тип, значение) и равен nil, только когда пусты <b>оба</b>; здесь в интерфейс уже записан тип <code>*int</code>.</p><div class="q"><b>Follow-up (Голубой):</b> а как всё-таки проверить, что внутри интерфейса лежит nil? Ответ — в эталоне ниже.</div></div></details>
 <div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
 <div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
 <details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">// Возвращай nil явно, не типизированный nil-указатель:
@@ -1807,7 +1807,25 @@ func do() error {
         return e
     }
     return nil // &lt;&lt;&lt; а не return e
-}</code></pre><div class="refx"><p><b><code>p == nil</code> → true; <code>i == nil</code> → false.</b> Интерфейс равен nil только если пусты <b>оба</b> слова (тип и значение). Положив в интерфейс nil-указатель типа <code>*int</code>, мы записали тип <code>*int</code> + data=nil — тип не пуст → интерфейс не nil.</p><p><b>Классический баг:</b> функция возвращает <code>error</code>, а внутри <code>var e *MyErr; return e</code> → снаружи <code>err != nil</code>, хотя указатель nil.</p></div></div></details>
+}</code></pre><div class="refx"><p><b><code>p == nil</code> → true; <code>i == nil</code> → false.</b> Интерфейс равен nil только если пусты <b>оба</b> слова (тип и значение). Положив в интерфейс nil-указатель типа <code>*int</code>, мы записали тип <code>*int</code> + data=nil — тип не пуст → интерфейс не nil.</p><p><b>Классический баг:</b> функция возвращает <code>error</code>, а внутри <code>var e *MyErr; return e</code> → снаружи <code>err != nil</code>, хотя указатель nil.</p><div class="lbl">Follow-up — как проверить, что внутри всё-таки nil</div><pre><code class="go">// 1) сравнение с типизированным nil — если тип известен:
+var s *string
+var i interface{} = s
+fmt.Println(i == nil)            // false
+fmt.Println(i == (*string)(nil)) // true — совпали и тип, и значение
+
+// 2) универсально — рефлексия:
+func isNil(i any) bool {
+    if i == nil {
+        return true
+    }
+    v := reflect.ValueOf(i)
+    switch v.Kind() {
+    case reflect.Ptr, reflect.Map, reflect.Slice,
+        reflect.Chan, reflect.Func, reflect.UnsafePointer:
+        return v.IsNil()
+    }
+    return false // значимые типы (int, struct…) nil не бывают
+}</code></pre><p class="note">Проверка <code>Kind()</code> обязательна: <code>IsNil()</code> на значимом типе <b>паникует</b>. И вторым тактом скажи: если бизнес-коду приходится так проверять — сломан дизайн на стороне, которая вернула типизированный nil; правильное лечение — <code>return nil</code> явно. Но сначала покажи, что механику знаешь.</p></div></div></details>
 </article><article class="task" data-tid="34">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет · найти баг</span><h3>«Звёздочка»: кеш не разгрузил хранилище</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Обёртка над кешем должна была разгрузить хранилище, но не разгрузила. Почему?</p>
@@ -2325,7 +2343,7 @@ func (s *Store) Get(ctx context.Context, key string) ([]byte, error) {
     return nil, errors.New("unknown mode")
 }</code></pre><div class="refx"><p>Это про <b>безопасную поэтапную миграцию</b>, а не алгоритм. Что проверяют: (1) shadow не блокирует и не роняет основной путь — V2 в горутине, результат/ошибка игнорируются; (2) аккуратность с ошибками в dual-режиме; (3) fallback на V1, когда V2 ещё неполный. Плюс: пробрасывать <code>ctx</code> в оба бэкенда, таймаут на V2 (чтобы медленный V2 не тормозил ответ), метрики расхождений V1/V2 для контроля переезда.</p></div></div></details>
 </article></div></details>
-<details class="sec" id="design"><summary>Дизайн под нагрузкой<span class="cnt">4</span></summary><div class="body"><p class="intro">Задачи-обёртки: не «решить алгоритм», а спроектировать корректно под конкуренцию и нагрузку. Ждут: интерфейсы, синхронизацию, шардирование, ограничение параллелизма, метрики и обсуждение трейдоффов.</p><article class="task" data-tid="40">
+<details class="sec" id="design"><summary>Дизайн под нагрузкой<span class="cnt">6</span></summary><div class="body"><p class="intro">Задачи-обёртки: не «решить алгоритм», а спроектировать корректно под конкуренцию и нагрузку. Ждут: интерфейсы, синхронизацию, шардирование, ограничение параллелизма, метрики и обсуждение трейдоффов.</p><article class="task" data-tid="40">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">реализовать</span><h3>In-memory cache (Set/Get)</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Написать простой потокобезопасный in-memory cache под интерфейс.</p>
 <div class="q"><b>Вопросы:</b><ol><li>Когда RWMutex работает медленно? Как ускорить?</li><li>Сколько шардов делать?</li><li>Можно ли быстрее, если ключи «1..10000» и других не бывает?</li></ol></div>
@@ -2683,6 +2701,168 @@ func handleCached(rdb *redis.Client) http.HandlerFunc {
 <div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
 <div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
 <details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="refx"><p><b>Ключевое (ломает саму цель сервиса):</b></p><ol><li><b>Кеш почти никогда не сохраняется.</b> Фоновое сохранение использует ctx запроса с <code>defer cancel()</code>: как только хендлер ответил и вышел — ctx отменяется, и горутина-сейвер по гонке чаще ловит <code>&lt;-ctx.Done()</code> и выходит, НЕ записав в Redis. Для фонового сохранения нужен НЕ ctx запроса, а свой (<code>context.Background()</code> + собственный таймаут).</li><li><b>Утечка горутины.</b> Если сработал <code>ctx.Done()</code>, вторая горутина виснет на <code>ch &lt;- rawData</code> навсегда (нет читателя, канал небуферизированный) → утечка на каждый промах под нагрузкой.</li></ol><p><b>Обработка ошибок:</b></p><ol start="3"><li><b><code>HttpProvider.Get</code> глотает ошибки:</b> <code>resp, _ := http.Get(...)</code> — при ошибке <code>resp == nil</code> → <code>resp.Body</code> паника; тело не закрывается (<code>defer resp.Body.Close()</code>) → утечка дескрипторов; ошибки Decode и Get игнорируются, всегда возвращается <code>nil</code>.</li><li><b>Обрабатывается только <code>redis.Nil</code>.</b> Любая другая ошибка Redis (недоступен) уходит в <code>else</code> → Unmarshal пустых данных → пустой ответ и НЕ идём в провайдер. Надо: <code>err==nil</code> → хит; <code>redis.Nil</code> → промах; иначе → ошибка/фолбэк.</li><li><b><code>rdb.Set(...).Err()</code></b> — результат отброшен: молчаливые провалы записи.</li><li><b><code>handleCached</code></b> глотает ошибку → при отсутствии ключа отдаёт пустой ответ с 200 вместо 404.</li></ol><p><b>Прод / Kubernetes:</b></p><ol start="7"><li><b><code>localhost:8080</code></b> — слушает только loopback; в k8s под недоступен из сервиса → биндить <code>:8080</code> (0.0.0.0).</li><li><b>Нет таймаутов сервера и graceful shutdown</b> (<code>http.Server</code> с <code>ReadTimeout/WriteTimeout</code>); ошибка <code>ListenAndServe</code> не логируется.</li><li><b>Cache stampede</b> (NFR — хайлоад): на промах много запросов по одному ключу одновременно бьют в провайдер → <code>singleflight</code>.</li><li><b>ctx не доходит до провайдера:</b> 1-минутный таймаут не применяется к <code>client.Get</code> (там <code>http.Get</code> без ctx) — таймаут бесполезен.</li></ol><p><b>Стиль:</b> ресивер <code>self</code> неидиоматичен; старый <code>go-redis/v7</code> без ctx в API; <code>Data []byte</code> при <code>json.Marshal</code> base64-кодируется (двойное кодирование).</p></div></div></details>
+</article><article class="task" data-tid="70">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">код-ревью · найти проблемы</span><h3>Логер: код-ревью FileLogger</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Показывают код и просят рассказать, какие проблемы видишь. <b>Особенность формата:</b> интервьюеры молчат — ни кивка, ни «да, верно». Не жди подтверждений: веди разбор сам, по чек-листу «компиляция → корректность → конкурентность → дизайн/перфоманс», проговаривая каждый пункт вслух.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type Logger interface {
+    Log(message string) error
+    Close() error
+}
+
+type FileLogger struct{ file *os.File }
+
+func NewFileLogger(fileName string) (*FileLogger, error) {
+    f, err := os.Create(fileName)
+    if err != nil {
+        return nil, err
+    }
+    return &amp;FileLogger{f}, nil
+}
+
+func (f *FileLogger) Log(message string) error {
+    _, err := f.file.WriteString(message + "\n")
+    return err
+}
+
+func (f *FileLogger) Close() error {
+    return f.file.Close()
+}
+
+func main() {
+    l := NewFileLogger("file.txt")
+    defer Close()
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон ответа и исправленный код</summary><div class="r"><p class="cmp">↑ Сверху — твой разбор. Сравни с эталоном ниже.</p><div class="refx"><p><b>Не компилируется (начни с этого):</b></p><ol><li><code>l := NewFileLogger("file.txt")</code> — функция возвращает <b>два</b> значения <code>(*FileLogger, error)</code>, а принимаем в одну переменную → ошибка компиляции. И ошибку нужно обработать, иначе при <code>err != nil</code> получим nil-логер и панику на первом же вызове.</li><li><code>defer Close()</code> — такой функции нет, нужно <code>defer l.Close()</code>.</li></ol><p><b>Корректность:</b></p><ol start="3"><li><b><code>os.Create</code> обнуляет существующий файл</b> (truncate) — при каждом рестарте теряем прошлые логи. Для логера нужен append: <code>os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)</code>.</li><li><b>Ошибка <code>Close()</code> теряется</b> в голом <code>defer</code> — а у файла именно Close может вернуть ошибку сброса на диск; её надо хотя бы залогировать/отдать наверх.</li><li><b>Log после Close и двойной Close</b> никак не защищены: получим невнятную ошибку записи в закрытый файл вместо явной «logger closed»; Close не идемпотентен.</li></ol><p><b>Конкурентность (главное, что ждут):</b></p><ol start="6"><li><b>Конкурентные <code>Log</code> не синхронизированы:</b> несколько горутин пишут в один <code>*os.File</code> — строки могут перемешаться, атомарность <code>WriteString</code> ничем не гарантирована (файл открыт без <code>O_APPEND</code>, и даже с ним полагаться нельзя). Нужен мьютекс или сериализация через единственного писателя (→ следующая задача).</li></ol><p><b>Дизайн / перфоманс:</b></p><ol start="7"><li>Каждый <code>Log</code> — отдельный syscall <code>write</code>; под нагрузкой дорого → буферизация (<code>bufio.Writer</code>) с Flush по таймеру и при Close. Трейдофф: при краше теряется хвост буфера — проговори это.</li><li><code>&amp;FileLogger{f}</code> — инициализация без имени поля, сломается при добавлении полей (стиль).</li><li>Можно упомянуть: нет уровней, таймстемпов, ротации — но интерфейс задан условием, наружу не расширяем.</li></ol><div class="lbl">Идеал — исправленный FileLogger</div><pre><code class="go">type FileLogger struct {
+    mu   sync.Mutex
+    file *os.File
+}
+
+func NewFileLogger(fileName string) (*FileLogger, error) {
+    f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644) // ← append, не truncate
+    if err != nil {
+        return nil, err
+    }
+    return &amp;FileLogger{file: f}, nil
+}
+
+func (l *FileLogger) Log(message string) error {
+    l.mu.Lock()                       // ← сериализуем конкурентные Log
+    defer l.mu.Unlock()
+    if l.file == nil {
+        return errors.New("logger closed") // ← явная ошибка после Close
+    }
+    _, err := l.file.WriteString(message + "\n")
+    return err
+}
+
+func (l *FileLogger) Close() error {
+    l.mu.Lock()
+    defer l.mu.Unlock()
+    if l.file == nil {
+        return nil                    // ← идемпотентный Close
+    }
+    err := l.file.Close()
+    l.file = nil
+    return err
+}
+
+func main() {
+    l, err := NewFileLogger("file.txt") // ← обе переменные + проверка ошибки
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer func() {
+        if err := l.Close(); err != nil { // ← ошибка Close не теряется
+            log.Printf("close logger: %v", err)
+        }
+    }()
+    _ = l.Log("hello")
+}</code></pre><p class="note"><b>Как вести себя при молчащих интервьюерах:</b> они проверяют, умеешь ли ты сам структурировать ревью без наводок. Прогони чек-лист вслух, называй не только «что не так», но и «чем это стреляет в проде» и «как чинить». Закончил пункт — сам переходи к следующему, не жди реакции.</p></div></div></details>
+</article><article class="task" data-tid="71">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">спроектировать · реализовать</span><h3>Логер: обёртка SequentialLogger</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Продолжение предыдущей задачи: предлагают «улучшить логер, обернув его своей структурой» — и больше <b>ничего не говорят</b>. Задача сознательно открытая: ты сам должен сформулировать, какие проблемы решает обёртка, и спроектировать поведение в краевых случаях. Название <code>Sequential</code> — подсказка: сериализация записи.</p>
+<div class="q"><b>Прочелленджи себя сам (это и есть скрытые критерии):</b><ol><li>Что даёт обёртка? (сериализация конкурентных <code>Log</code> + асинхронность: вызывающий не ждёт диск)</li><li>Если запись стала асинхронной — что возвращает <code>Log</code> и куда деваются ошибки записи?</li><li>Close: как не потерять сообщения, стоящие в очереди, и когда закрывать вложенный логер?</li><li><code>Log</code> после <code>Close</code> и двойной <code>Close</code> — как не словить панику <code>send on closed channel</code>?</li><li>Очередь переполнена: блокироваться (backpressure) или дропать?</li></ol></div>
+<div class="lbl">Код задачи</div><pre><code class="go">type SequentialLogger struct {
+    wrappedLogger Logger
+}
+
+func NewSequentialLogger(wrappedLogger Logger) *SequentialLogger {
+}
+
+func (sl *SequentialLogger) Log(message string) error {
+}
+
+func (sl *SequentialLogger) Close() error {
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Ниже — минимальный способ и эталон.</p><div class="lbl">Способ 1 — минимальный: мьютекс (сериализация без асинхронности)</div><pre><code class="go">type SequentialLogger struct {
+    mu      sync.Mutex
+    wrapped Logger
+}
+
+func NewSequentialLogger(w Logger) *SequentialLogger { return &amp;SequentialLogger{wrapped: w} }
+
+func (sl *SequentialLogger) Log(message string) error {
+    sl.mu.Lock()
+    defer sl.mu.Unlock()
+    return sl.wrapped.Log(message) // ← строки не перемешиваются, ошибка синхронно наружу
+}
+
+func (sl *SequentialLogger) Close() error {
+    sl.mu.Lock()
+    defer sl.mu.Unlock()
+    return sl.wrapped.Close()
+}</code></pre><p class="note">Честная сериализация и ошибки возвращаются вызывающему — но каждый <code>Log</code> ждёт диск под локом, при всплеске нагрузки все горутины выстраиваются в очередь. Озвучь это и переходи к асинхронному варианту.</p><div class="lbl">Идеал — очередь + единственный писатель (актор)</div><pre><code class="go">type SequentialLogger struct {
+    wrapped Logger
+    msgs    chan string
+    done    chan struct{} // закроется, когда писатель дописал всё
+    mu      sync.RWMutex  // защищает closed от гонки с Close
+    closed  bool
+}
+
+func NewSequentialLogger(wrapped Logger) *SequentialLogger {
+    sl := &amp;SequentialLogger{
+        wrapped: wrapped,
+        msgs:    make(chan string, 1024), // буфер сглаживает всплески
+        done:    make(chan struct{}),
+    }
+    go func() {                    // единственный писатель — сериализация «бесплатно»
+        defer close(sl.done)
+        for m := range sl.msgs {   // выйдет, когда канал закрыт И дочитан
+            if err := sl.wrapped.Log(m); err != nil {
+                fmt.Fprintf(os.Stderr, "log write: %v\n", err) // ошибки — см. разбор
+            }
+        }
+    }()
+    return sl
+}
+
+func (sl *SequentialLogger) Log(message string) error {
+    sl.mu.RLock()                  // RLock: Log-и идут параллельно, Lock берёт только Close
+    defer sl.mu.RUnlock()
+    if sl.closed {
+        return errors.New("logger closed")
+    }
+    sl.msgs &lt;- message             // буфер полон → backpressure (блокируемся)
+    return nil
+}
+
+func (sl *SequentialLogger) Close() error {
+    sl.mu.Lock()
+    if sl.closed {
+        sl.mu.Unlock()
+        return nil                 // идемпотентный Close
+    }
+    sl.closed = true
+    close(sl.msgs)                 // безопасно: новых отправителей уже не будет
+    sl.mu.Unlock()
+
+    &lt;-sl.done                      // дождаться, пока писатель дольёт очередь
+    return sl.wrapped.Close()      // и только потом закрыть файл
+}</code></pre><div class="refx"><p><b>Что решает обёртка (проговори первым):</b> (1) гонку конкурентных <code>Log</code> из прошлой задачи — пишет одна горутина, строки не перемешиваются; (2) вызывающие не ждут диск — запись развязана очередью; (3) вся сложность (закрытие, переполнение) собрана в одном месте, а <code>FileLogger</code> остаётся тупым писателем. Это декоратор над <code>Logger</code> + паттерн «единственный писатель» — обёртка работает с <b>любой</b> реализацией интерфейса.</p><p><b>Почему флаг + RWMutex, а не «просто закрыть канал»:</b> send в закрытый канал — <b>паника</b>. Канал нельзя закрывать, пока возможны отправители. Поэтому <code>Log</code> проверяет флаг и держит RLock на время отправки, а <code>Close</code> под полным Lock выставляет флаг и закрывает канал — в этот момент активных отправителей гарантированно нет (они бы держали RLock).</p><p><b>Ошибки записи:</b> раз запись асинхронна, <code>Log</code> уже не может вернуть ошибку диска — он возвращает только «logger closed». Варианты, назови и выбери: молча терять (плохо), stderr + метрика (по умолчанию ок), канал ошибок/callback наружу, синхронный режим с ответным каналом (теряется весь смысл обёртки). </p><p><b>Переполнение очереди:</b> блокироваться — ничего не теряем, но при деградации диска встанет всё приложение; дропать (через <code>select</code> с <code>default</code>) + счётчик потерянных — логер не роняет сервис. Для логов чаще выбирают drop, для аудита — блокировку. Главное — показать, что выбор осознанный.</p><p><b>Close без потерь:</b> закрыть канал → дождаться <code>done</code> (писатель дочитал очередь) → закрыть вложенный логер. Если закрыть файл раньше — хвост очереди упадёт с ошибками. Опционально: таймаут на дренаж через <code>select</code>.</p><p><b>Бонусы для сеньор-уровня:</b> батчинг (писатель забирает из канала пачку и пишет одним вызовом), <code>bufio.Writer</code> + периодический Flush, метрики глубины очереди.</p></div></div></details>
 </article>
 </div></details>
 <details class="sec" id="sql"><summary>SQL<span class="cnt">9</span></summary><div class="body"><p class="intro">Проверяют JOIN, агрегаты, HAVING vs WHERE, индексы и умение оптимизировать. Пиши запрос в поле, раскрывай эталон и сравнивай. Частый акцент: правило левого префикса индекса и «equality → range → order by».</p><article class="task" data-tid="64">
