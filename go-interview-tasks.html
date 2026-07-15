@@ -201,8 +201,9 @@
 <a href="#ptr">Указатели и ресиверы</a>
 <a href="#goroutines">Горутины</a>
 <a href="#design">Дизайн под нагрузкой</a>
-<a href="#sql">SQL</a></nav>
-<details class="sec" id="conc"><summary>Конкурентность<span class="cnt">20</span></summary><div class="body"><p class="intro">Главный блок лайвкодинга. Смотрят не на API, а на модель в голове: кто кого блокирует, кто закрывает канал, где утечёт горутина, как собрать результат без гонок и как всё корректно завершить/отменить. Проговаривай вслух состояние (кто на каком канале ждёт) и всегда думай про завершение.</p><article class="task" data-tid="0">
+<a href="#sql">SQL</a>
+<a href="#algo">Алгоритмы</a></nav>
+<details class="sec" id="conc"><summary>Конкурентность<span class="cnt">21</span></summary><div class="body"><p class="intro">Главный блок лайвкодинга. Смотрят не на API, а на модель в голове: кто кого блокирует, кто закрывает канал, где утечёт горутина, как собрать результат без гонок и как всё корректно завершить/отменить. Проговаривай вслух состояние (кто на каком канале ждёт) и всегда думай про завершение.</p><article class="task" data-tid="0">
 <div class="thead"><span class="b ks">Серый</span><span class="ttag">что выведет · найти баг</span><h3>Сумма квадратов через канал (deadlock)</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет этот код?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1213,7 +1214,7 @@ func FindSlowest(statuses []DeviceStatus, n int) []DeviceStatus {
 }</code></pre><p class="note">Пишем в <b>свою ячейку</b> предвыделенного среза — без гонки и без лока, порядок сохранён. <code>errgroup</code> с <code>SetLimit</code> заменяет ручной пул и прокидывает отмену через <code>ctx</code>, а <code>checkOne</code> стоит вернуть ошибку, а не глотать.</p></div></div></details>
 </article>
 </div></details>
-<details class="sec" id="slices"><summary>Слайсы и строки<span class="cnt">9</span></summary><div class="body"><p class="intro">Слайс — дескриптор (ptr/len/cap) поверх общего массива; строка неизменяема. Почти все задачи — про то, когда append мутирует родителя, а когда реаллоцирует и «отвязывается». Держи в голове: влезло в cap → пишем в общий массив.</p><article class="task" data-tid="20">
+<details class="sec" id="slices"><summary>Слайсы и строки<span class="cnt">11</span></summary><div class="body"><p class="intro">Слайс — дескриптор (ptr/len/cap) поверх общего массива; строка неизменяема. Почти все задачи — про то, когда append мутирует родителя, а когда реаллоцирует и «отвязывается». Держи в голове: влезло в cap → пишем в общий массив.</p><article class="task" data-tid="20">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет</span><h3>append в подслайс: два print</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведут два <code>fmt.Println</code> и почему?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1274,7 +1275,7 @@ println(s)    // ?</code></pre>
 <div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
 <details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">b := []byte(s)   // копия
 b[0] = &#x27;R&#x27;
-s = string(b)    // &quot;Rest&quot;</code></pre><div class="refx"><p><b>Код не компилируется.</b> Строка в Go <b>неизменяема</b>: присваивать по индексу нельзя (<code>s[0]="R"</code> — ошибка компиляции; плюс <code>"R"</code> — строка, а <code>s[0]</code> — байт). Слабый ответ «выведет 116 (байт 't') и не заменит» — неверно, до выполнения не дойдёт.</p><p><b>Как менять:</b> сконвертировать в <code>[]byte</code> (или <code>[]rune</code> для символов), поправить, собрать обратно <code>string(b)</code>.</p></div></div></details>
+s = string(b)    // &quot;Rest&quot;</code></pre><div class="refx"><p><b>Код не компилируется.</b> Строка в Go <b>неизменяема</b>: присваивать по индексу нельзя (<code>s[0]="R"</code> — ошибка компиляции; плюс <code>"R"</code> — строка, а <code>s[0]</code> — байт). Слабый ответ «выведет 116 (байт 't') и не заменит» — неверно, до выполнения не дойдёт.</p><p><b>Как менять:</b> сконвертировать в <code>[]byte</code> (или <code>[]rune</code> для символов), поправить, собрать обратно <code>string(b)</code>.</p><p class="note"><b>Follow-up с не-ASCII текстом:</b> та же задача, но <code>str := "Привет"; str[2] = 'e'</code> — тот же вердикт (не компилируется), но чинить надо аккуратнее: кириллица в UTF-8 — по <b>2 байта</b> на букву, поэтому <code>[]byte(str)[2]</code> — это <b>середина</b> байтов буквы «и», а не третья буква. Правка через <code>[]byte</code> побайтово тут сломает кодировку. Нужно конвертировать в <code>[]rune(str)</code> (по рунам, а не байтам), менять <code>r[2]</code> и собирать обратно <code>string(r)</code>. Правило: <code>[]byte</code> — когда данные заведомо ASCII или нужны сырые байты; <code>[]rune</code> — когда индексируешь «символы» человеческого текста.</p></div></div></details>
 </article><article class="task" data-tid="24">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">реализовать</span><h3>Слайс монотонный?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Определить, монотонен ли слайс (везде не убывает или везде не возрастает). {1,7}→true, {3,3,1}→true, {23,5,23}→false.</p>
@@ -1358,7 +1359,7 @@ s = string(b)    // &quot;Rest&quot;</code></pre><div class="refx"><p><b>Код 
         seen[v] = struct{}{}
     }
     return res
-}</code></pre><div class="refx"><p><b>map как множество:</b> генерируем, пропускаем дубли через <code>map[int]struct{}</code> (<code>struct{}</code> — 0 байт). Амортизированно ~O(n). <b>Проверяют:</b> идиому set через <code>map[...]struct{}</code> и понимание, что при узком диапазоне возможен долгий подбор.</p></div></div></details>
+}</code></pre><div class="refx"><p><b>map как множество:</b> генерируем, пропускаем дубли через <code>map[int]struct{}</code> (<code>struct{}</code> — 0 байт). Амортизированно ~O(n). <b>Проверяют:</b> идиому set через <code>map[...]struct{}</code> и понимание, что при узком диапазоне возможен долгий подбор.</p><p><b>Follow-up: как тестировать функцию со случайным выходом?</b> Точные значения не проверишь — тестируй <b>инварианты</b>: <code>len(res) == n</code>; все элементы уникальны (собрать в set, сверить размер); при узком диапазоне значений — что функция вообще завершается за разумное время (иначе тест с таймаутом поймает зависание). Для <b>детерминизма</b> в тесте — не хардкодить <code>rand.Int()</code> глобально, а прокидывать источник случайности параметром (<code>*rand.Rand</code> с фиксированным seed, или <code>io.Reader</code>) — тогда тест с конкретным seed воспроизводим и можно один раз руками посчитать ожидаемый результат. Это же — общий приём для тестирования любого недетерминированного кода: <b>вынести источник недетерминизма наружу</b> (rand, time.Now, uuid) как зависимость, чтобы её можно было подменить в тесте.</p></div></div></details>
 </article><article class="task" data-tid="63">
 <div class="thead"><span class="b ks">Серый</span><span class="ttag">поправить</span><h3>Слайс указателей + append: почини на 0 1 2 3</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Программа печатает <code>3 3 3</code> из-за двух багов (aliasing одной переменной + append в функции не виден снаружи). Почини так, чтобы вывод стал <code>0 1 2 3</code>.</p>
@@ -1478,9 +1479,34 @@ func intersect(a, b []int) []int {
     }
     return res
 }</code></pre><div class="refx"><p><b>Разворот:</b> идём по списку, разворачивая указатели <code>next</code> назад; <code>prev</code> в конце — новая голова. Главное — не потерять <code>cur.next</code> до перезаписи (в Go выручает множественное присваивание).</p><p><b>N-й с конца:</b> «быстрый» указатель уходит вперёд на N, затем двигаем оба до конца — «медленный» окажется на N-м с конца. Один проход, без подсчёта длины.</p><p><b>Пересечение:</b> счётчик по первому слайсу, потом идём по второму и берём, пока счётчик &gt; 0 (учитывает дубликаты). O(n+m) времени, O(n) памяти.</p></div></div></details>
+</article><article class="task" data-tid="80">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что выведет</span><h3>len не меняется append-ом внутри функции: s[3] или паника?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Что будет содержать <code>s</code> после вызова <code>a(s)</code>? Что произойдёт в <code>println</code> для слайса и отдельно — для мапы?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">func a(s []int) {
+    s = append(s, 37)
+}
+
+func b(m map[int]int) {
+    m[3] = 33
+}
+
+func main() {
+    s := make([]int, 3, 8)
+    m := make(map[int]int, 8)
+
+    a(s)
+    println(s[3]) // ?
+
+    b(m)
+    println(m[3]) // ?
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b><code>println(s[3])</code> — паника <code>index out of range [3] with length 3</code></b>, до строки с мапой дело не доходит (проверено). Если убрать первую строку — <code>println(m[3])</code> напечатает <b>33</b>.</p></div></details>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Ловушка не там, где обычно ждут.</b> В привычных задачах на эту тему смотрят, «мутировал ли <code>append</code> общий массив» — здесь да, влезло в cap (8), поэтому физически байты <b>записались</b> в общий массив по индексу 3. Но <code>a</code> принимает <code>s</code> <b>по значению</b>: у неё своя копия заголовка слайса (ptr/len/cap), и <code>s = append(s, 37)</code> внутри <code>a</code> меняет <b>len этой локальной копии</b> (стал 4) — заголовок в <code>main</code> как был <code>len=3</code>, так и остался.</p><p>Значит <code>println(s[3])</code> в <code>main</code> обращается по индексу 3 к слайсу, у которого <b>len всё ещё 3</b> — это выход за границы <b>видимой длины</b>, и Go проверяет границы по <code>len</code>, а не по фактически записанным байтам в массиве. Результат — паника, а не «тихо прочитали мусор» и не «37».</p><p><b>Контраст с мапой:</b> <code>map</code> — это указатель на структуру рантайма (не пара len/cap, копируемая по значению) — поэтому <code>b(m)</code> меняет <b>ту же самую</b> map, что видна в <code>main</code>, и <code>m[3]</code> благополучно напечатает 33.</p><p><b>Проверяют:</b> различие «данные физически записаны в массив» и «эта запись видна через len» — они не одно и то же; и что slice/map по-разному ведут себя при передаче в функцию (slice — заголовок копируется, map — референс на общую структуру).</p></div></div></details>
 </article>
 </details>
-<details class="sec" id="channels"><summary>Каналы<span class="cnt">6</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
+<details class="sec" id="channels"><summary>Каналы<span class="cnt">7</span></summary><div class="body"><p class="intro">Аксиомы (nil/закрытый/буфер) плюс ловушки на порядок вычисления и завершение. Помни: закрывает всегда писатель; чтение из закрытого не блокирует; nil-канал блокирует навсегда; пустой select{} — навсегда.</p><article class="task" data-tid="28">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет</span><h3>Два worker() подряд — 3 или 6 секунд?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Сколько отработает <code>main</code> — 3 или 6с? Почему? Как ускорить до 3?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -1747,7 +1773,7 @@ func main() {
 <details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Ключ к задаче — обе ветки «готовы»:</b></p><ul><li><b>Чтение из закрытого канала</b> никогда не блокирует: <code>&lt;-second</code> мгновенно возвращает zero value (<code>""</code>, ok=false). Ветка готова.</li><li><b>Отправка в закрытый канал</b> — тоже «готовая» операция: она не блокируется, а сразу выполняется… и <b>паникует</b>. Буфер (cap 1) не спасает — в закрытый канал нельзя писать вообще.</li></ul><p><b><code>select</code> выбирает случайную из готовых веток</b> (равновероятно, чтобы не было starvation). Выпала <code>&lt;-second</code> → печатает <code>second</code> и корректно завершается; выпала <code>first &lt;- ...</code> → <code>panic: send on closed channel</code>. Поэтому «что выведет» — вопрос с подвохом: <b>поведение разное от запуска к запуску</b>, и это главный ожидаемый ответ.</p><p><b>Проверяют аксиомы каналов:</b> (1) чтение из закрытого — не блокирует, отдаёт zero value; (2) запись в закрытый — паника всегда, буфер не важен; (3) select при нескольких готовых ветках выбирает <b>случайно</b>. Бонус: строка <code>"&lt;-"</code> в отправке — визуальный шум, чтобы запутать; на семантику не влияет.</p><p><b>Follow-up, который могут спросить:</b> а если убрать <code>close(second)</code>? Тогда готова только ветка отправки → гарантированная паника. А если убрать оба <code>close</code>? Отправка в <code>first</code> влезает в буфер → всегда <code>first</code>.</p></div></div></details>
 </article>
 </details>
-<details class="sec" id="maps"><summary>Мапы и интерфейсы<span class="cnt">8</span></summary><div class="body"><p class="intro">map не потокобезопасна и её порядок обхода случайный; ключ должен быть comparable. Интерфейс равен nil только когда пусты и тип, и значение; type assertion строгий (T и *T — разные типы).</p><article class="task" data-tid="32">
+<details class="sec" id="maps"><summary>Мапы и интерфейсы<span class="cnt">10</span></summary><div class="body"><p class="intro">map не потокобезопасна и её порядок обхода случайный; ключ должен быть comparable. Интерфейс равен nil только когда пусты и тип, и значение; type assertion строгий (T и *T — разные типы).</p><article class="task" data-tid="32">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет · найти баг</span><h3>3 горутины пишут в map</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет этот код?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">x := make(map[int]int, 1)
@@ -2049,9 +2075,59 @@ func main() {
     p.name = "Bob"
     fmt.Println(s.Speak()) // Bob — интерфейс держит указатель на ту же p
 }</code></pre><p class="note"><b>Но проговори цену:</b> если горутина держит <code>*Person</code>, а main пишет <code>p.name = "Charlie"</code> — это уже <b>data race</b> (нет happens-before между записью и чтением в горутине, <code>-race</code> сработает), нужен мьютекс или канал. Копирование значений — не баг, а способ избежать гонок; «чинить» = осознанно выбрать семантику: значение → снимок, указатель → общее состояние + синхронизация.</p><p><b>Проверяют:</b> интерфейс боксит копию при значимом ресивере; шэдоуинг <code>:=</code>; момент вычисления аргументов <code>go</code>; method set (<code>*Person</code> vs <code>Person</code>).</p></div></div></details>
+</article><article class="task" data-tid="77">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что выведет</span><h3>Два «пустых» интерфейса — a == b?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Что выведет <code>fmt.Println(a == b)</code>?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type impl struct{}
+type I interface{ C() }
+
+func (*impl) C() {}
+
+func A() I { return nil }
+func B() I {
+    var ret *impl
+    return ret
+}
+
+func main() {
+    a := A()
+    b := B()
+    fmt.Println(a == b)
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b><code>false</code></b> (проверено). Интуиция «оба вернули что-то похожее на nil, значит равны» — ловушка.</p></div></details>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Разные внутренности при одинаковом «на вид nil».</b> <code>A()</code> делает <code>return nil</code> напрямую — интерфейс <code>a</code> пуст <b>полностью</b>: (тип: nil, значение: nil). <code>B()</code> возвращает переменную <code>ret</code> типа <code>*impl</code>, которая равна nil, но <b>типизирована</b> — интерфейс <code>b</code> хранит (тип: <code>*impl</code>, значение: nil).</p><pre>a = (nil,   nil)   // истинный nil-интерфейс
+b = (*impl, nil)   // типизированный nil внутри интерфейса</pre><p>Сравнение интерфейсов <code>a == b</code> сравнивает <b>оба слова</b>: тип и значение. Слова значений совпадают (оба nil), но слова <b>типов</b> разные (nil vs <code>*impl</code>) → результат <b>false</b>. При этом по отдельности: <code>a == nil</code> → <b>true</b>; <code>b == nil</code> → <b>false</b> (та же классика типизированного nil, что и в задаче выше — но здесь дополнительно спрашивают про сравнение <b>двух</b> интерфейсов между собой, не с литералом <code>nil</code>).</p><p><b>Проверяют:</b> что «выглядит как nil» не значит «равно nil» и не значит «равно другому nil-подобному значению» — интерфейсы сравниваются по обоим словам, и разнотипные nil-и никогда не совпадут.</p></div></div></details>
+</article><article class="task" data-tid="78">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что выведет</span><h3>errorHandler(nil *MyError): паникует или нет?</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Что выведет код и почему? (Ресивер <code>Error()</code> — значимый, не указательный — обрати на это внимание.)</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type MyError struct{}
+
+func (MyError) Error() string {
+    return "MyError!"
+}
+
+func errorHandler(err error) {
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+}
+
+func main() {
+    var err *MyError
+    errorHandler(err)
+    err = &amp;MyError{}
+    errorHandler(err)
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>🔍 Показать: что выведет / как отработает</summary><div class="r"><p><b>Не паникует</b> (интуитивный ответ «упадёт на разыменовании nil» — неверный, проверено запуском):</p><pre>Error: &lt;nil&gt;
+Error: MyError!</pre></div></details>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Первый вызов: типизированный nil, но без паники.</b> <code>var err *MyError</code> — nil-указатель; передан в <code>errorHandler(err error)</code>, интерфейс становится (тип: <code>*MyError</code>, значение: nil) → <code>err != nil</code> внутри функции — <b>true</b> (уже знакомая ловушка типизированного nil). Заходим в <code>fmt.Println("Error:", err)</code> — и тут ожидаемо ждёшь паники на <code>err.Error()</code> (значимый ресивер требует разыменовать <code>*err</code>, а указатель nil). <b>Но</b> пакет <code>fmt</code> защищается сам: прежде чем вызывать <code>Error()</code>/<code>String()</code> у операнда, он проверяет — не nil-указатель ли внутри интерфейса, и если да, печатает <code>&lt;nil&gt;</code> <b>не вызывая метод</b>. Отсюда первая строка — <code>Error: &lt;nil&gt;</code>, без паники.</p><p><b>Важная деталь — это защита именно <code>fmt</code>, а не свойство языка.</b> Прямой вызов <code>err.Error()</code> (без fmt) на этом же nil-указателе <b>паникует</b> — проверено отдельно: Go всё равно должен разыменовать <code>*err</code>, чтобы получить значение-приёмник <code>MyError</code>, и это настоящее <code>nil pointer dereference</code>. Именно поэтому если <code>MyError</code> — тип с полями (не пустая структура), а метод пишет что-то через приёмник, прямой вызов рухнет; в примере страхует только то, что мы печатаем через <code>fmt</code>.</p><p><b>Второй вызов:</b> <code>err = &amp;MyError{}</code> — обычный не-nil указатель, <code>Error()</code> спокойно возвращает <code>"MyError!"</code>.</p><p><b>Проверяют:</b> знание конкретной «защиты от паники» в <code>fmt</code> для Stringer/error у nil-указателей (нечастое, но реальное знание уровня «читал исходники fmt»); и что это <b>не отменяет</b> общее правило — типизированный nil в error всё ещё «не равен nil» и всё ещё может уронить код, который вызывает метод <b>напрямую</b>, а не через <code>fmt</code>.</p></div></div></details>
 </article>
 </details>
-<details class="sec" id="ptr"><summary>Указатели и ресиверы<span class="cnt">2</span></summary><div class="body"><p class="intro">Ресивер метода — обычный аргумент и передаётся <b>по значению</b>, даже если он указатель. Отсюда две классики: переприсваивание/инкремент самого ресивера снаружи не виден, а вызов метода на nil-указателе легален, пока внутри нет разыменования. И помни: адресной арифметики в Go нет.</p><article class="task" data-tid="72">
+<details class="sec" id="ptr"><summary>Указатели и ресиверы<span class="cnt">3</span></summary><div class="body"><p class="intro">Ресивер метода — обычный аргумент и передаётся <b>по значению</b>, даже если он указатель. Отсюда две классики: переприсваивание/инкремент самого ресивера снаружи не виден, а вызов метода на nil-указателе легален, пока внутри нет разыменования. И помни: адресной арифметики в Go нет.</p><article class="task" data-tid="72">
 <div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что выведет · починить</span><h3>c++ на указательном ресивере</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет, и почему? Поправь так, чтобы заработало корректно.</p>
 <div class="lbl">Код задачи</div><pre><code class="go">type Count int
@@ -2114,8 +2190,29 @@ func main() {
     v.init()
     fmt.Println(v.b)  // 3
 }</code></pre><div class="refx"><p><b>Суть:</b> ресивер (и указательный тоже) передаётся <b>по значению</b> — <code>v = &amp;a{...}</code> внутри метода меняет локальную переменную-копию указателя и никогда не виден вызывающему. Указательный ресивер позволяет менять <i>то, на что указывает</i> указатель (<code>v.b = 3</code>), но не <i>сам указатель</i> в вызывающем коде.</p><p><b>Проговори отдельно:</b> вызов метода на nil-ресивере — не паника (это просто вызов функции с аргументом nil); паника случается при <b>разыменовании</b>. Поэтому программа падает не на <code>v.init()</code>, а на <code>v.b</code>.</p><p><b>Идиома:</b> для инициализации — конструктор <code>NewX()</code> (способ 1); «самоинициализирующийся» метод на nil-ресивере — анти-паттерн (двойной указатель <code>**a</code> технически возможен, но в Go так не пишут).</p></div></div></details>
+</article><article class="task" data-tid="79">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">что скомпилируется</span><h3>Method set: T vs *T, и почему T{}.Z() не соберётся</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Какие из шести строк работают нормально, а какие — нет, и почему?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type T []int
+func (T) X()  {}
+func (*T) Z() {}
+
+func main() {
+    var t T
+    t.X()    // 1
+    t.Z()    // 2
+    var p = &amp;t
+    p.X()    // 3
+    p.Z()    // 4
+    T{}.X()  // 5
+    T{}.Z()  // 6
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>🔍 Показать: что скомпилируется</summary><div class="r"><p>Всё, кроме строки <b>6</b> — там ошибка компиляции <code>cannot call pointer method Z on T</code> (проверено).</p></div></details>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой ответ. Сравни с разбором ниже.</p><div class="refx"><p><b>Правило method set:</b> тип <code>T</code> включает только методы со значимым ресивером (<code>X</code>); тип <code>*T</code> включает <b>оба</b> — свои указательные (<code>Z</code>) и унаследованные значимые (<code>X</code>).</p><ul><li><b>1 — ок.</b> <code>t.X()</code>: <code>X</code> в method set <code>T</code>.</li><li><b>2 — ок, хотя <code>Z</code> требует <code>*T</code>.</b> <code>t</code> — <b>адресуемая</b> переменная, компилятор молча подставляет <code>(&amp;t).Z()</code>.</li><li><b>3, 4 — ок.</b> <code>p</code> уже <code>*T</code> — оба метода в его method set напрямую (для <code>X</code> компилятор при необходимости разыменует, тут и это не нужно).</li><li><b>5 — ок.</b> <code>T{}.X()</code> — вызов значимого метода на временном значении; временное значение не адресуемо, но <code>X</code> он и не требует.</li><li><b>6 — ошибка компиляции.</b> <code>T{}.Z()</code> требует <code>*T</code>, а для этого нужно взять адрес <code>&amp;(T{})</code> — но <b>результат композитного литерала не адресуем</b> (это rvalue, у него нет гарантированного места хранения на момент вызова). Компилятор не может молча подставить <code>&amp;</code>, как делал для строки 2 (там <code>t</code> — именованная адресуемая переменная).</li></ul><p><b>Как починить 6, если действительно нужно:</b> сохранить в переменную — <code>x := T{}; x.Z()</code> — теперь адресуема.</p><p><b>Проверяют:</b> формальное правило method set (значимый ресивер → входит в <code>T</code> и <code>*T</code>; указательный → только в <code>*T</code>) и отдельно — понятие <b>адресуемости</b> (переменная — да, композитный литерал/результат функции — нет), от которого зависит, когда компилятор сам возьмёт <code>&amp;</code>.</p></div></div></details>
 </article></div></details>
-<details class="sec" id="goroutines"><summary>Горутины<span class="cnt">2</span></summary><div class="body"><p class="intro">Классика на захват переменной цикла и на то, что main не ждёт горутины. С Go 1.22 переменная цикла — per-iteration, но на собесе нужно знать оба поведения и назвать версию.</p><article class="task" data-tid="38">
+<details class="sec" id="goroutines"><summary>Горутины<span class="cnt">3</span></summary><div class="body"><p class="intro">Классика на захват переменной цикла и на то, что main не ждёт горутины. С Go 1.22 переменная цикла — per-iteration, но на собесе нужно знать оба поведения и назвать версию.</p><article class="task" data-tid="38">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">что выведет · найти баг</span><h3>Захват переменной цикла в горутинах</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Что выведет этот код?</p>
 <div class="lbl">Код задачи</div><pre><code class="go">func main() {
@@ -2232,7 +2329,7 @@ func main() {
 }</code></pre><div class="refx"><p><b>Ключевое:</b> продюсеры слушают <code>ctx.Done()</code> в том же <code>select</code>, где пишут; после <code>cancel()</code> они выходят по этой ветке, а <code>wg.Wait()</code> гарантирует, что мы дождались завершения — иначе утечка горутин или вечная блокировка на записи.</p><p><b>Тонкость:</b> после <code>break</code> из <code>range</code> никто больше не читает <code>pipe</code>, но <code>cancel()</code> уже вызван → <code>ctx.Done()</code> закрыт, и продюсеры не виснут на <code>out &lt;- i</code>, а выходят. Порядок «сначала cancel, потом Wait» важен.</p></div></div></details>
 </article>
 </div></details>
-<details class="sec" id="patterns"><summary>Паттерны (пишем с нуля)<span class="cnt">7</span></summary><div class="body"><p class="intro">Классические паттерны конкурентности и дизайна, которые на собесе просят написать <b>с нуля</b>. Условие → заготовка-скелет → пиши решение → сверься с эталоном. MultiSearch — в разделе «Конкурентность».</p>
+<details class="sec" id="patterns"><summary>Паттерны (пишем с нуля)<span class="cnt">8</span></summary><div class="body"><p class="intro">Классические паттерны конкурентности и дизайна, которые на собесе просят написать <b>с нуля</b>. Условие → заготовка-скелет → пиши решение → сверься с эталоном. MultiSearch — в разделе «Конкурентность».</p>
 <article class="task" data-tid="54">
 <div class="thead"><span class="b classic">Классика</span><span class="ttag">реализовать</span><h3>Worker Pool с ограничением числа горутин</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Есть поток задач; обрабатывать их нужно <b>фиксированным числом</b> воркеров (не по горутине на задачу), складывать результаты и корректно завершаться — не потеряв ни одной задачи и не зависнув. Реализуй <code>pool</code>: запусти N воркеров из <code>jobs</code>, пиши в <code>results</code>, закрой <code>results</code>, когда всё обработано.</p>
@@ -2485,8 +2582,62 @@ func (s *Store) Get(ctx context.Context, key string) ([]byte, error) {
     }
     return nil, errors.New("unknown mode")
 }</code></pre><div class="refx"><p>Это про <b>безопасную поэтапную миграцию</b>, а не алгоритм. Что проверяют: (1) shadow не блокирует и не роняет основной путь — V2 в горутине, результат/ошибка игнорируются; (2) аккуратность с ошибками в dual-режиме; (3) fallback на V1, когда V2 ещё неполный. Плюс: пробрасывать <code>ctx</code> в оба бэкенда, таймаут на V2 (чтобы медленный V2 не тормозил ответ), метрики расхождений V1/V2 для контроля переезда.</p></div></div></details>
+</article><article class="task" data-tid="81">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">спроектировать · реализовать</span><h3>Manager: Reader → Processor[] → Writer, пропуск на ошибке</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Реализуй интерфейс <code>Manager</code> так, чтобы он принимал данные из одного <code>Reader</code>, прогонял их через каждый <code>Processor</code> из списка по очереди и результат отдавал в <code>Writer</code>. При ошибке обработки — <b>пропустить</b> те данные, что были прочитаны из <code>Reader</code> (не писать их).</p>
+<div class="lbl">Код задачи</div><pre><code class="go">type Data struct {
+    ID      int
+    Payload map[string]interface{}
+}
+
+type Reader interface {
+    Read() []*Data
+}
+
+type Processor interface {
+    Process(Data) ([]*Data, error)
+}
+
+type Writer interface {
+    Write([]*Data)
+}
+
+type Manager interface {
+    Manage() // blocking
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">type manager struct {
+    reader     Reader
+    processors []Processor
+    writer     Writer
+}
+
+func NewManager(r Reader, ps []Processor, w Writer) Manager {
+    return &amp;manager{reader: r, processors: ps, writer: w}
+}
+
+func (m *manager) Manage() {
+    items := m.reader.Read()
+next:
+    for _, d := range items {
+        cur := []*Data{d}
+        for _, p := range m.processors {
+            var out []*Data
+            for _, c := range cur {
+                res, err := p.Process(*c)
+                if err != nil {
+                    continue next // ← ошибка на любой стадии — пропускаем весь элемент
+                }
+                out = append(out, res...)
+            }
+            cur = out
+        }
+        m.writer.Write(cur)
+    }
+}</code></pre><div class="refx"><p><b>Модель:</b> для каждого элемента, прочитанного из <code>Reader</code>, прогоняем его через <b>цепочку</b> процессоров (выход одного — вход следующего; процессор может расщепить один элемент на несколько — отсюда <code>[]*Data</code> на входе и выходе стадии). Ошибка на любой стадии → <code>continue next</code> к внешнему циклу по <code>items</code> — текущий элемент целиком пропускается, остальные продолжают обрабатываться независимо (одна плохая запись не роняет пачку).</p><p><b>Проверяют:</b> сборку системы из маленьких интерфейсов (реализуешь <code>Manager</code>, компонуя чужие <code>Reader</code>/<code>Processor</code>/<code>Writer</code> — тебе их имплементации не нужны, только контракт), корректную семантику «пропустить элемент», а не «уронить всё» на первой ошибке.</p><p><b>Что спросят следом:</b> а если процессоры независимы и их можно гонять параллельно на разных элементах? — обернуть цикл по <code>items</code> в worker pool / <code>errgroup</code> с ограничением параллелизма, <code>Writer.Write</code> должен быть потокобезопасен (или писать через канал в один писатель). А если <code>Reader.Read()</code> отдаёт поток, а не пачку разом? — <code>Manage()</code> зовут в цикле или <code>Reader</code> сам блокирующий генератор.</p></div></div></details>
 </article></div></details>
-<details class="sec" id="design"><summary>Дизайн под нагрузкой<span class="cnt">6</span></summary><div class="body"><p class="intro">Задачи-обёртки: не «решить алгоритм», а спроектировать корректно под конкуренцию и нагрузку. Ждут: интерфейсы, синхронизацию, шардирование, ограничение параллелизма, метрики и обсуждение трейдоффов.</p><article class="task" data-tid="40">
+<details class="sec" id="design"><summary>Дизайн под нагрузкой<span class="cnt">13</span></summary><div class="body"><p class="intro">Задачи-обёртки: не «решить алгоритм», а спроектировать корректно под конкуренцию и нагрузку. Ждут: интерфейсы, синхронизацию, шардирование, ограничение параллелизма, метрики и обсуждение трейдоффов.</p><article class="task" data-tid="40">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">реализовать</span><h3>In-memory cache (Set/Get)</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Написать простой потокобезопасный in-memory cache под интерфейс.</p>
 <div class="q"><b>Вопросы:</b><ol><li>Когда RWMutex работает медленно? Как ускорить?</li><li>Сколько шардов делать?</li><li>Можно ли быстрее, если ключи «1..10000» и других не бывает?</li></ol></div>
@@ -2514,6 +2665,71 @@ func (c *cache) Set(k, v string) {
     defer c.mu.Unlock()
     c.m[k] = v
 }</code></pre><div class="refx"><p><b>База:</b> map + <code>sync.RWMutex</code>, map инициализировать в конструкторе. Подсветить проблемы: переполнение памяти, нет инвалидации (ключи живут вечно).</p><p><b>RWMutex медленный</b> при высоком RPS: даже RLock обновляет счётчик читателей → <b>cache contention</b> между ядрами. Решение — <b>шардирование</b>: N сегментов, ключ → шард по хешу, у каждого свой мьютекс. Шардов — <b>не меньше числа потоков</b>, кратно. Если ключи «1..10000» — предвыделенный <b>слайс</b> вместо map, доступ O(1) без хеша и локов (или atomic per-index).</p></div></div></details>
+</article><article class="task" data-tid="85">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Продолжение: память не бесконечна — реализуй LRU</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Прямое продолжение кеша выше: память <b>не бесконечна</b>. Нужна политика вытеснения. Реализуй <code>LRUCache</code> с ёмкостью <code>capacity</code>: <code>Get</code> и <code>Set</code> — <b>O(1)</b>, при переполнении вытесняется <b>давно не используемый</b> ключ.</p>
+<div class="q"><b>Сначала вопрос словами:</b> какие вообще есть алгоритмы вытеснения и когда какой брать? (LRU, LFU, FIFO, TTL — коротко назови компромиссы, потом пиши код.)</div>
+<div class="lbl">Код задачи</div><pre><code class="go">type LRUCache struct {
+    capacity int
+    // ...
+}
+
+func NewLRUCache(capacity int) *LRUCache {
+}
+
+func (c *LRUCache) Get(key string) (string, bool) {
+}
+
+func (c *LRUCache) Set(key, value string) {
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — map + двусвязный список</div><pre><code class="go">type entry struct{ key, value string }
+
+type LRUCache struct {
+    mu       sync.Mutex
+    capacity int
+    items    map[string]*list.Element // ключ → узел списка, O(1) доступ
+    order    *list.List               // голова = самый свежий, хвост = самый старый
+}
+
+func NewLRUCache(capacity int) *LRUCache {
+    return &amp;LRUCache{
+        capacity: capacity,
+        items:    make(map[string]*list.Element, capacity),
+        order:    list.New(),
+    }
+}
+
+func (c *LRUCache) Get(key string) (string, bool) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    el, ok := c.items[key]
+    if !ok {
+        return "", false
+    }
+    c.order.MoveToFront(el) // ← подтвердили использование
+    return el.Value.(*entry).value, true
+}
+
+func (c *LRUCache) Set(key, value string) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    if el, ok := c.items[key]; ok {
+        el.Value.(*entry).value = value
+        c.order.MoveToFront(el)
+        return
+    }
+    if c.order.Len() >= c.capacity {
+        oldest := c.order.Back()      // ← хвост = давно не использовался
+        if oldest != nil {
+            c.order.Remove(oldest)
+            delete(c.items, oldest.Value.(*entry).key)
+        }
+    }
+    el := c.order.PushFront(&amp;entry{key, value})
+    c.items[key] = el
+}</code></pre><div class="refx"><p><b>Алгоритмы вытеснения — коротко:</b> <b>LRU</b> (least recently used) — выгоняем то, к чему дольше всего не обращались; хорошо на типичных паттернах доступа («горячее» остаётся горячим). <b>LFU</b> (least frequently used) — выгоняем самое редко используемое по счётчику обращений; лучше LRU, когда есть стабильно горячий набор ключей и редкие всплески не должны его вытеснять, но дороже реализовать и хуже реагирует на смену паттерна. <b>FIFO</b> — просто по порядку вставки, не учитывает обращения — проще всех, хуже всех по hit-rate. <b>TTL</b> — не про «вытеснение по нехватке места», а про протухание по времени; часто комбинируют с LRU/LFU.</p><p><b>Почему map + двусвязный список даёт O(1):</b> map даёт мгновенный доступ к узлу списка по ключу; список хранит порядок «давности» и позволяет <b>перекинуть узел в голову</b> (<code>MoveToFront</code>) или <b>удалить хвост</b> — обе операции O(1) на двусвязном списке (в отличие от слайса, где сдвиг элементов — O(n)). Go даёт готовый двусвязный список в <code>container/list</code> — на собесе можно писать его руками (два указателя <code>prev/next</code> на узел) или использовать stdlib, если не просят «совсем с нуля».</p><p><b>Проверяют:</b> обе структуры данных вместе (map — быстрый поиск, список — быстрый порядок), а не одну из них в отдельности; O(1) на <b>оба</b> метода, не только на один.</p></div></div></details>
 </article><article class="task" data-tid="41">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">код-ревью · найти баги</span><h3>Ревью кода кеша</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Код нового кеша под высокую нагрузку (80% чтений). Найди все проблемы.</p>
@@ -3006,9 +3222,97 @@ func (sl *SequentialLogger) Close() error {
     &lt;-sl.done                      // дождаться, пока писатель дольёт очередь
     return sl.wrapped.Close()      // и только потом закрыть файл
 }</code></pre><div class="refx"><p><b>Что решает обёртка (проговори первым):</b> (1) гонку конкурентных <code>Log</code> из прошлой задачи — пишет одна горутина, строки не перемешиваются; (2) вызывающие не ждут диск — запись развязана очередью; (3) вся сложность (закрытие, переполнение) собрана в одном месте, а <code>FileLogger</code> остаётся тупым писателем. Это декоратор над <code>Logger</code> + паттерн «единственный писатель» — обёртка работает с <b>любой</b> реализацией интерфейса.</p><p><b>Почему флаг + RWMutex, а не «просто закрыть канал»:</b> send в закрытый канал — <b>паника</b>. Канал нельзя закрывать, пока возможны отправители. Поэтому <code>Log</code> проверяет флаг и держит RLock на время отправки, а <code>Close</code> под полным Lock выставляет флаг и закрывает канал — в этот момент активных отправителей гарантированно нет (они бы держали RLock).</p><p><b>Ошибки записи:</b> раз запись асинхронна, <code>Log</code> уже не может вернуть ошибку диска — он возвращает только «logger closed». Варианты, назови и выбери: молча терять (плохо), stderr + метрика (по умолчанию ок), канал ошибок/callback наружу, синхронный режим с ответным каналом (теряется весь смысл обёртки). </p><p><b>Переполнение очереди:</b> блокироваться — ничего не теряем, но при деградации диска встанет всё приложение; дропать (через <code>select</code> с <code>default</code>) + счётчик потерянных — логер не роняет сервис. Для логов чаще выбирают drop, для аудита — блокировку. Главное — показать, что выбор осознанный.</p><p><b>Close без потерь:</b> закрыть канал → дождаться <code>done</code> (писатель дочитал очередь) → закрыть вложенный логер. Если закрыть файл раньше — хвост очереди упадёт с ошибками. Опционально: таймаут на дренаж через <code>select</code>.</p><p><b>Бонусы для сеньор-уровня:</b> батчинг (писатель забирает из канала пачку и пишет одним вызовом), <code>bufio.Writer</code> + периодический Flush, метрики глубины очереди.</p></div></div></details>
-</article>
-</div></details>
-<details class="sec" id="sql"><summary>SQL<span class="cnt">10</span></summary><div class="body"><p class="intro">Проверяют JOIN, агрегаты, HAVING vs WHERE, индексы и умение оптимизировать. Пиши запрос в поле, раскрывай эталон и сравнивай. Частый акцент: правило левого префикса индекса и «equality → range → order by».</p><article class="task" data-tid="64">
+</article><article class="task" data-tid="82">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">код-ревью</span><h3>Ревью Dockerfile для Go-сервиса</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Что можно улучшить в этом Dockerfile?</p>
+<div class="lbl">Код задачи</div><pre><code class="go">FROM golang:latest
+COPY . .
+RUN go build -o /app
+CMD ["/app"]</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой разбор. Сравни с эталоном ниже.</p><div class="lbl">Идеал</div><pre><code class="go">FROM golang:1.26 AS build              # ← пинить версию, не latest
+WORKDIR /src
+COPY go.mod go.sum ./                  # ← сначала только зависимости
+RUN go mod download                    #    (кэш слоя не рвётся при правке кода)
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux \
+    go build -ldflags="-s -w" -o /app ./cmd/server
+
+FROM gcr.io/distroless/static-debian12 # ← минимальный рантайм-образ
+COPY --from=build /app /app
+USER nonroot:nonroot                   # ← не root в контейнере
+EXPOSE 8080
+ENTRYPOINT ["/app"]</code></pre><div class="refx"><p><b>По пунктам, что не так в исходнике:</b></p><ol><li><b><code>golang:latest</code></b> — непредсказуемая версия, разные сборки в разное время могут получить разный Go; пинить конкретный тег (<code>golang:1.26</code> или с точным патчем).</li><li><b>Нет multi-stage build</b> — итоговый образ тащит весь Go SDK и исходники (сотни МБ) вместо только бинаря. Финальная стадия — <code>scratch</code>/<code>distroless</code>/<code>alpine</code>.</li><li><b><code>COPY . .</code> перед <code>go mod download</code></b> — рвёт кэш Docker-слоёв: любое изменение <b>любого</b> файла (даже README) инвалидирует слой и заново качает все зависимости. Сначала копировать только <code>go.mod</code>/<code>go.sum</code>, качать зависимости, и только потом копировать остальной код.</li><li><b>Нет <code>.dockerignore</code></b> (подразумевается) — <code>COPY . .</code> тащит <code>.git</code>, тесты, локальные конфиги, увеличивая контекст сборки и риск утечки секретов в слой.</li><li><b>Не статическая сборка</b> — без <code>CGO_ENABLED=0</code> бинарь может линковаться динамически и не запустится в <code>scratch</code>/<code>distroless</code> (нет нужных <code>.so</code>).</li><li><b>Контейнер бежит от root</b> — нет <code>USER</code>; в проде — повышенный риск при компрометации процесса. Добавить непривилегированного пользователя (или взять <code>distroless:nonroot</code>).</li><li><b>Нет <code>EXPOSE</code></b> — не документирует порт (не критично функционально, но плохая практика/читаемость для оркестратора).</li><li>Можно упомянуть: healthcheck, версионирование образа по git-тегу/коммиту (не просто <code>latest</code>), сборка под нужный <code>GOARCH</code> при кросс-платформенном деплое.</li></ol></div></div></details>
+</article><article class="task" data-tid="83">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">system design</span><h3>Прикинуть нагрузку: аналог pastebin</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Спроектировать аналог pastebin: создать сниппет, обновить сниппет. Нагрузка — 10 млн создания в месяц, чтений в 10 раз больше. Каждый сниппет хранится 1 месяц. Чтение должно быть максимально быстрым. Есть аналитики, которые шлют «жирные» запросы.</p>
+<div class="q"><b>Посчитай сам перед тем, как открывать эталон:</b><ol><li>RPS на запись и на чтение (пиковый, не средний).</li><li>Сколько дискового пространства понадобится с учётом retention в месяц.</li><li>Как изолировать «жирные» аналитические запросы от быстрого пути чтения.</li></ol></div>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши прикидки и решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твои прикидки. Сравни с эталоном ниже.</p><div class="refx"><p><b>1. Back-of-envelope RPS (порядок величины — не точность важна, а сам метод):</b></p><pre>Создания: 10 000 000 / месяц ÷ ~2.6 млн сек/месяц ≈ 4 RPS средних
+Чтения:   10× создания ≈ 40 RPS средних
+Пиковая нагрузка обычно ×5–10 от средней (неравномерность по часам/дням)
+  → пиково: запись ~20-40 RPS, чтение ~200-400 RPS</pre><p><b>Метод для собеса:</b> «месяц ≈ 2.6 млн секунд» — держи в голове как константу (30дней×24ч×3600с). Средний RPS = объём / секунды. Пиковый = средний × коэффициент неравномерности (спроси/предположи ×5–10, назови вслух, что это допущение).</p><p><b>2. Дисковое пространство:</b></p><pre>10 млн сниппетов/месяц × retention 1 месяц = 10 млн сниппетов одновременно
+Средний размер сниппета — уточнить! Предположим ~10 КБ (код/текст)
+10 000 000 × 10 КБ = 100 ГБ «сырых» данных
++ индексы/метаданные (~20-30%) + репликация (×2-3 для отказоустойчивости)
+  → ~300-500 ГБ фактически на кластер
+</pre><p><b>Метод:</b> количество живых объектов (retention учитывает — старое само «стекает», не накапливается бесконечно) × средний размер × коэффициент на индексы и репликацию. Уточняющий вопрос интервьюеру про средний размер объекта — правильный шаг, не выдумывай точную цифру молча.</p><p><b>3. Архитектура:</b></p><ul><li><b>Быстрое чтение</b> — 400 RPS чтения не проблема для одной БД, но раз «важна скорость» — кэш (Redis) перед основным хранилищем, ключ = ID сниппета, TTL = оставшееся время retention.</li><li><b>Хранилище</b> — простая KV-модель (ID → содержимое + метаданные), Postgres или сразу key-value (DynamoDB/S3 для содержимого + Postgres/индекс для метаданных, если сниппеты большие).</li><li><b>Retention 1 месяц</b> — не «удалять руками»: TTL в кэше + фоновая джоба чистки БД (или TTL-таблица в Postgres/Mongo с partial index, или партиционирование по дате создания — «уронить» партицию целиком быстрее, чем DELETE построчно).</li><li><b>Изоляция аналитики от быстрого пути</b> — ключевое требование условия: аналитики не должны бить по той же БД, где живёт горячий путь записи/чтения. Решение — <b>read-реплика</b> отдельно под аналитиков (или CDC-поток в отдельное аналитическое хранилище вроде ClickHouse); «жирные» запросы туда, прод-путь их не чувствует.</li></ul><p class="sumbox"><b>Резюме для собеса:</b> «оцени RPS через объём/время × коэффициент пиковости, диск — через живые объекты × размер × индексы × репликацию, и в архитектуре явно разнеси „горячий путь“ (кэш + основная БД) от „тяжёлой аналитики“ (реплика/отдельное хранилище) — это и было главным требованием условия».</p></div></div></details>
+</article><article class="task" data-tid="84">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">спроектировать · реализовать</span><h3>Погода за 1 секунду при 3k RPS: не звать нейросеть на каждый запрос</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond"><code>getWeather()</code> считает температуру через нейросеть за ~1 секунду. Нужна ручка <code>/weather/highload</code> под нагрузкой <b>3000 RPS</b>. Реализуй хендлер так, чтобы он не звал <code>getWeather</code> на каждый запрос (это невозможно физически — 3000 параллельных вызовов по 1с).</p>
+<div class="q"><b>Follow-up:</b> теперь температура зависит от <code>location_id</code> — как изменится решение?</div>
+<div class="lbl">Код задачи</div><pre><code class="go">func getWeather() int {
+    time.Sleep(1 * time.Second)
+    return rand.Intn(70) - 30
+}
+
+func main() {
+    http.HandleFunc("/weather/highload", func(resp http.ResponseWriter, req *http.Request) {
+        // реализуй меня
+    })
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — TTL-кеш + singleflight</div><pre><code class="go">type weatherEntry struct {
+    value     int
+    expiresAt time.Time
+}
+
+type WeatherCache struct {
+    mu    sync.RWMutex
+    items map[string]weatherEntry
+    g     singleflight.Group // ← дедуп одновременных запросов по одному ключу
+    ttl   time.Duration
+}
+
+func (c *WeatherCache) Get(locationID string) int {
+    c.mu.RLock()
+    e, ok := c.items[locationID]
+    c.mu.RUnlock()
+    if ok &amp;&amp; time.Now().Before(e.expiresAt) {
+        return e.value // ← попали в кеш, нейросеть не звали
+    }
+    v, _, _ := c.g.Do(locationID, func() (interface{}, error) {
+        val := getWeather() // ← реально вызовется ОДИН раз на N ждущих
+        c.mu.Lock()
+        c.items[locationID] = weatherEntry{value: val, expiresAt: time.Now().Add(c.ttl)}
+        c.mu.Unlock()
+        return val, nil
+    })
+    return v.(int)
+}
+
+func main() {
+    cache := &amp;WeatherCache{items: make(map[string]weatherEntry), ttl: time.Minute}
+    http.HandleFunc("/weather/highload", func(w http.ResponseWriter, r *http.Request) {
+        loc := r.URL.Query().Get("location_id")
+        fmt.Fprintf(w, "%d", cache.Get(loc))
+    })
+}</code></pre><div class="refx"><p><b>Без location_id — задача ещё проще:</b> один и тот же ответ для всех → достаточно <b>обновлять раз в N секунд фоновой горутиной</b> (<code>time.Ticker</code>) в переменную под <code>atomic.Value</code>/RWMutex, а хендлер просто читает — вообще без кеша с TTL-проверкой на каждый запрос.</p><p><b>С <code>location_id</code> — вот тут и нужен показанный выше кеш:</b> ключей много, регенерировать все фоново дорого и бессмысленно (многие location_id вообще не спросят). Два элемента вместе решают задачу: <b>TTL-кеш</b> — не звать нейросеть чаще, чем нужно, на <b>каждый</b> ключ отдельно; <b>singleflight</b> — если кеш для конкретного <code>location_id</code> протух и одновременно прилетело 500 запросов именно за ним (типичный паттерн при 3k RPS на популярный город) — <b>реально</b> вызвать <code>getWeather</code> только <b>один раз</b>, остальные 499 ждут результат первого (это и есть защита от <b>cache stampede</b> — см. соответствующий вопрос в банке).</p><p><b>Проверяют:</b> понимание, что «медленный вызов + высокий RPS» решается не оптимизацией самого вызова (его тело менять нельзя, да и незачем — это нейросеть), а <b>снижением частоты вызовов</b> через кеш; и что кеш без singleflight не защищает от стада запросов на протухший ключ.</p></div></div></details>
+</article></div></details>
+<details class="sec" id="sql"><summary>SQL<span class="cnt">11</span></summary><div class="body"><p class="intro">Проверяют JOIN, агрегаты, HAVING vs WHERE, индексы и умение оптимизировать. Пиши запрос в поле, раскрывай эталон и сравнивай. Частый акцент: правило левого префикса индекса и «equality → range → order by».</p><article class="task" data-tid="64">
 <div class="thead"><span class="b syn">Синий</span><span class="ttag">написать SQL</span><h3>Скрининг-разминка: четыре мини-запроса</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
 <p class="cond">Быстрая серия со скрининга — пишут подряд, без раздумий: (1) топ-10 покупателей по числу покупок; (2) корзины с непустым <code>customer_id</code>; (3) «листья» в дереве сотрудников — те, у кого нет подчинённых; (4) пользователи с суммой покупок &gt; 5000.</p>
 <div class="lbl">Код задачи</div><pre><code class="go">-- orders(id, user_id, price)
@@ -3237,6 +3541,200 @@ g AS (
 )
 -- дальше как в эталоне, но с фильтром:
 -- ... FROM g WHERE NOT booked GROUP BY grp → COUNT → MAX</code></pre><p><b>Проверяют:</b> оконные функции (ROW_NUMBER/LAG), CTE, идею gaps and islands и умение проговорить краевые случаи. Родственная задача — LeetCode 603 Consecutive Available Seats.</p></div></div></details>
+</article><article class="task" data-tid="86">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">написать SQL</span><h3>Страны с числом студентов &gt; 10, кроме Китая</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Таблица <code>students(id, name, country)</code>. Вывести страну и количество студентов, где студентов больше 10 и страна — не Китай (China).</p>
+<div class="lbl">Код задачи</div><pre><code class="go">-- students(id, name, country)</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">SELECT country, COUNT(*) AS cnt
+FROM students
+WHERE country &lt;&gt; 'China'    -- ← фильтр по строке — в WHERE, до группировки
+GROUP BY country
+HAVING COUNT(*) &gt; 10        -- ← фильтр по агрегату — в HAVING, после группировки
+ORDER BY cnt DESC;</code></pre><div class="refx"><p><b>Ловушка задачи — смешать два разных вида условий в одном месте.</b> «Не Китай» — это условие на <b>сырую строку</b> ещё до группировки → <code>WHERE country &lt;&gt; 'China'</code>. «Больше 10 студентов» — это условие на <b>результат агрегатной функции</b> <code>COUNT(*)</code>, которая существует только после <code>GROUP BY</code> → обязан быть <code>HAVING</code>, а не <code>WHERE</code> (движок ещё не посчитал <code>COUNT</code> на момент фильтрации <code>WHERE</code>). Частая ошибка — попытаться написать <code>WHERE COUNT(*) &gt; 10</code>: это <b>ошибка</b> на большинстве СУБД («aggregate functions are not allowed in WHERE»).</p><p><b>Порядок исполнения запроса</b> (полезно проговорить): <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>ORDER BY</code>. Отсюда и правило: всё, что можно отфильтровать <b>до</b> группировки (обычные колонки) — фильтруй в <code>WHERE</code> (дешевле, меньше строк долетает до <code>GROUP BY</code>); всё, что зависит от агрегата — только в <code>HAVING</code>.</p></div></div></details>
+</article></div></details>
+<details class="sec" id="algo"><summary>Алгоритмы<span class="cnt">7</span></summary><div class="body"><p class="intro">Классические алгоритмические задачи, которые встречаются на Go-собесах вперемешку с языковыми — обычно как разминка или «пока ждём результаты интервью». Меньше про Go-специфику, больше про идею решения и сложность.</p><article class="task" data-tid="87">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Генератор паролей заданной длины</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Написать функцию, которая принимает целое число n и возвращает строку длины n из символов a-zA-Z0-9.</p>
+<div class="q"><b>Вопросы:</b><ol><li>Что тут можно улучшить?</li><li>Какие тесты ты бы написал? Можно ли предсказать, какая строка сгенерируется, чтобы писать тесты?</li></ol></div>
+<div class="lbl">Код задачи</div><pre><code class="go">func GenPassword(n int) (string, error) {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func GenPassword(n int) (string, error) {
+    b := make([]byte, n)
+    for i := range b {
+        idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphabet)))) // crypto/rand
+        if err != nil {
+            return "", err
+        }
+        b[i] = alphabet[idx.Int64()]
+    }
+    return string(b), nil
+}</code></pre><div class="refx"><p><b>Что тут можно улучшить — ключевая ловушка:</b> если взять <code>math/rand</code> вместо <code>crypto/rand</code>, генератор становится <b>предсказуемым</b> — зная seed (а по умолчанию до Go 1.20 он был детерминирован без явного <code>Seed()</code>, а с 1.20 — случаен, но всё ещё не криптостоек), пароли можно <b>угадать/переподобрать</b>. Для паролей/токенов — только <code>crypto/rand</code>. Второе улучшение: не гонять <code>rand.Int</code> в цикле по одному байту (дороже) — можно один раз получить блок случайных байт <code>rand.Read</code> и мапить по модулю (с осторожностью насчёт modulo bias) или через <code>rand.Text()</code> (Go 1.24+, готовая криптостойкая строка).</p><p><b>Тестирование:</b> точное значение не проверить — тестируй <b>свойства</b>: <code>len(result) == n</code>; каждый символ ∈ алфавиту (regexp/цикл проверки); при N вызовах результаты <b>различаются</b> (не залипло на одном значении — плохой признак сломанного генератора); статистически — распределение символов не должно быть сильно перекошено при большой выборке (грубая проверка на «явно сломанный» рандом). <b>Предсказать</b> результат для теста можно, только если явно инжектировать источник случайности (например, принять <code>io.Reader</code> параметром вместо жёсткого <code>rand.Reader</code>) — тогда в тесте подсунуть детерминированный <code>Reader</code> и знать точный ожидаемый вывод.</p></div></div></details>
+</article><article class="task" data-tid="88">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Сбросить i-й бит числа в 0</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Написать функцию, которая устанавливает i-ый бит числа в 0.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">func ClearBit(n uint, i uint) uint {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">func ClearBit(n uint, i uint) uint {
+    return n &amp;^ (1 &lt;&lt; i) // AND-NOT: сбрасывает ровно i-й бит, остальные не трогает
+}
+// ClearBit(0b1111, 1) == 0b1101 (13)</code></pre><div class="refx"><p><b>Идея:</b> <code>1 &lt;&lt; i</code> — маска с единственной единицей в позиции <code>i</code>. Оператор <code>&amp;^</code> («AND NOT», он же bit clear) — идиоматичный Go-способ сказать «обнули биты, которые единицы в маске справа, остальные оставь как есть»; эквивалент <code>n &amp; (^(1 &lt;&lt; i))</code> из C, но без явного <code>^</code>-отрицания маски. <b>Симметричные операции</b>, которые заодно могут спросить: установить бит — <code>n | (1 &lt;&lt; i)</code>; переключить бит — <code>n ^ (1 &lt;&lt; i)</code>; проверить бит — <code>n&amp;(1&lt;&lt;i) != 0</code>.</p></div></div></details>
+</article><article class="task" data-tid="89">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Свернуть числа в диапазоны</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Дан список целых чисел, повторяющихся элементов нет. Преобразовать в строку, сворачивая соседние по числовому ряду числа в диапазоны.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">// [1, 4, 5, 2, 3, 9, 8, 11, 0] =&gt; "0-5,8-9,11"
+// [1, 4, 3, 2]                =&gt; "1-4"
+// [1, 4]                      =&gt; "1,4"
+func CompressRanges(nums []int) string {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон / подсказка</div><pre><code class="go">func CompressRanges(nums []int) string {
+    if len(nums) == 0 {
+        return ""
+    }
+    s := append([]int(nil), nums...) // ← копия, не мутируем вход
+    sort.Ints(s)
+
+    var parts []string
+    start, prev := s[0], s[0]
+    flush := func(end int) {
+        if start == end {
+            parts = append(parts, fmt.Sprintf("%d", start))
+        } else {
+            parts = append(parts, fmt.Sprintf("%d-%d", start, end))
+        }
+    }
+    for _, v := range s[1:] {
+        if v == prev+1 { // ← продолжение текущего диапазона
+            prev = v
+            continue
+        }
+        flush(prev) // ← разрыв — закрываем текущий диапазон
+        start, prev = v, v
+    }
+    flush(prev) // ← не забыть закрыть последний
+    return strings.Join(parts, ",")
+}</code></pre><div class="refx"><p><b>Идея:</b> отсортировать (порядок во входных данных не гарантирован — в примере <code>[1,4,5,2,3,9,8,11,0]</code> числа вперемешку), затем один проход: пока следующее число ровно на 1 больше предыдущего — расширяем текущий диапазон; как только разрыв — фиксируем накопленный диапазон и начинаем новый. O(n log n) за счёт сортировки, дальше — линейный проход.</p><p><b>Копия входа</b> (<code>append([]int(nil), nums...)</code>) — чтобы <code>sort.Ints</code> не мутировал слайс вызывающего (если это важно по условию — иначе можно сортировать на месте, но лучше явно проговорить эту развилку).</p><p><b>Порядок диапазонов в выводе</b> в примере условия («8-9,0-5,11») не отсортирован — похоже на побочный эффект чужой реализации (например, через map с недетерминированным порядком обхода). На собесе безопаснее выдавать <b>детерминированный отсортированный</b> порядок и явно спросить, важен ли порядок вообще.</p></div></div></details>
+</article><article class="task" data-tid="90">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Подотрезок с заданной суммой (с отрицательными числами)</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Дан массив целых чисел (могут быть отрицательные) и целое число target. Найти непустой подотрезок (непрерывную подпоследовательность) с суммой target, либо сказать, что это невозможно.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">// FindTargetSubarray([9, -6, 5, 1, 4, -2], 10) -&gt; (2, 4)  // индексы [включительно, включительно]
+func FindTargetSubarray(nums []int, target int) (int, int) {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — префиксные суммы + map</div><pre><code class="go">func FindTargetSubarray(nums []int, target int) (int, int) {
+    prefix := map[int]int{0: -1} // сумма 0 достигается "до начала" (индекс -1)
+    sum := 0
+    for i, v := range nums {
+        sum += v
+        if j, ok := prefix[sum-target]; ok { // ← искомый отрезок = (j+1 .. i)
+            return j + 1, i
+        }
+        if _, ok := prefix[sum]; !ok { // первое вхождение этой суммы — не перезаписывать
+            prefix[sum] = i
+        }
+    }
+    return -1, -1
+}</code></pre><div class="refx"><p><b>Почему не sliding window:</b> классический two-pointer/скользящее окно для «сумма = target» работает только когда все числа <b>неотрицательны</b> (тогда расширение окна монотонно увеличивает сумму, можно однозначно решать, двигать левую или правую границу). С отрицательными числами эта монотонность ломается — окно не знает, в какую сторону сумма пойдёт при сдвиге.</p><p><b>Идея через префиксные суммы:</b> сумма подотрезка <code>(j+1..i)</code> = <code>prefix[i] - prefix[j]</code>. Нужен подотрезок с суммой <code>target</code> ⟺ <code>prefix[i] - prefix[j] == target</code> ⟺ <code>prefix[j] == prefix[i] - target</code>. Идём слева направо, на каждом шаге проверяем — видели ли мы раньше префиксную сумму <code>sum - target</code>; если да — вот и ответ. O(n) времени и памяти, работает с любыми числами (в т.ч. отрицательными).</p></div></div></details>
+</article><article class="task" data-tid="91">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Сложение «больших чисел» в виде массивов цифр</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Числа превышают ёмкость базовых типов, поэтому хранятся в виде массива неотрицательных цифр (по одной цифре на элемент, старший разряд первый). Написать функцию, которая примет два таких массива, посчитает сумму и вернёт результат в том же виде.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">// arr1 = [1, 2, 3] // число 123
+// arr2 = [4, 5, 6] // число 456
+// res  = [5, 7, 9] // число 579
+
+// arr1 = [5, 4, 4] // число 544
+// arr2 = [4, 5, 6] // число 456
+// res  = [1, 0, 0, 0] // число 1000 — разрядность выросла на 1
+func AddBigNumbers(a, b []int) []int {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — сложение в столбик с конца</div><pre><code class="go">func AddBigNumbers(a, b []int) []int {
+    i, j := len(a)-1, len(b)-1
+    carry := 0
+    var res []int
+    for i &gt;= 0 || j &gt;= 0 || carry &gt; 0 { // ← carry>0 обрабатывает лишний разряд в конце
+        sum := carry
+        if i &gt;= 0 {
+            sum += a[i]
+            i--
+        }
+        if j &gt;= 0 {
+            sum += b[j]
+            j--
+        }
+        res = append([]int{sum % 10}, res...) // ← дописываем в начало (старший разряд)
+        carry = sum / 10
+    }
+    return res
+}</code></pre><div class="refx"><p><b>Идея:</b> ровно как сложение в столбик руками — с конца (младший разряд), считаем сумму цифр + перенос (<code>carry</code>), кладём остаток от деления на 10, переносим частное дальше. Разная длина входов — не проблема: как только один из индексов кончился, просто не прибавляем его вклад. Финальный перенос (например, <code>9+1=10</code> в старшем разряде) увеличивает разрядность результата — цикл продолжается, пока <code>carry &gt; 0</code>, даже когда оба индекса уже -1.</p><p><b>Мелкий антипаттерн в решении:</b> <code>append([]int{sum%10}, res...)</code> в цикле — O(n) на каждой итерации (сдвиг всего слайса), итого O(n²). Для собеса это ок и читаемо; если спросят про оптимизацию — предзаполнить слайс нужной длины и писать с конца по индексу напрямую (O(n)).</p></div></div></details>
+</article><article class="task" data-tid="92">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>K наиболее частых элементов</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Дан массив целых чисел nums и целое число k. Вернуть k наиболее часто встречающихся элементов (в любом порядке).</p>
+<div class="lbl">Код задачи</div><pre><code class="go">// nums = [1,1,1,2,2,3], k = 2  -&gt;  [1, 2] (порядок неважен)
+func TopKFrequent(nums []int, k int) []int {
+    // реализуй меня
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — bucket sort по частоте, O(n)</div><pre><code class="go">func TopKFrequent(nums []int, k int) []int {
+    freq := make(map[int]int)
+    for _, n := range nums {
+        freq[n]++
+    }
+    buckets := make([][]int, len(nums)+1) // ← индекс бакета = частота (0..len(nums))
+    for n, c := range freq {
+        buckets[c] = append(buckets[c], n)
+    }
+    var res []int
+    for c := len(buckets) - 1; c &gt;= 0 &amp;&amp; len(res) &lt; k; c-- { // ← от самых частых к редким
+        res = append(res, buckets[c]...)
+    }
+    if len(res) &gt; k {
+        res = res[:k] // если в последнем бакете элементов больше, чем нужно добрать
+    }
+    return res
+}</code></pre><div class="refx"><p><b>Наивно</b> — отсортировать по частоте, O(n log n). <b>Быстрее</b> — куча (<code>container/heap</code>) размера k, O(n log k), стандартный ответ для «top-K» в общем случае. <b>Ещё быстрее здесь</b> — раз частота элемента ограничена сверху <code>len(nums)</code>, можно сделать <b>bucket sort</b>: массив «корзин» по индексу-частоте, каждый элемент кладём в свою корзину — O(n) без сравнений. Работает именно потому, что диапазон возможных частот заранее известен и ограничен (в отличие от произвольных значений, которые в бакеты так просто не разложишь).</p><p><b>Проверяют:</b> знание, что «топ-K» не обязательно = «отсортировать всё»; и умение заметить структуру задачи (ограниченный диапазон частот), которая позволяет уйти от O(n log n) к O(n).</p></div></div></details>
+</article><article class="task" data-tid="93">
+<div class="thead"><span class="b cyn">Голубой</span><span class="ttag">реализовать</span><h3>Слияние двух отсортированных слайсов</h3><button class="solved" type="button" title="Отметить решённой">✓ Решено</button></div>
+<p class="cond">Написать тело функции: <code>list1</code>, <code>list2</code> отсортированы по возрастанию; результат тоже должен быть отсортирован по возрастанию.</p>
+<div class="lbl">Код задачи</div><pre><code class="go">func merge(list1, list2 []int) []int {
+    // list1, list2 отсортированы по возрастанию
+    // результат тоже должен быть отсортирован по возрастанию
+}</code></pre>
+<div class="lbl">Твоё решение <span class="saved"></span></div><textarea class="code-in" spellcheck="false" placeholder="// пиши решение здесь — сохраняется автоматически на этом устройстве"></textarea>
+<div class="tbtns"><button class="clr" type="button">Очистить</button><a class="play" target="_blank" rel="noopener" href="https://go.dev/play/">Открыть Go Playground ↗</a></div>
+<details class="reveal"><summary>✅ Показать: эталон и разбор</summary><div class="r"><p class="cmp">↑ Сверху — твой код. Сравни с эталоном ниже.</p><div class="lbl">Эталон — merge-шаг из merge sort, O(n+m)</div><pre><code class="go">func merge(list1, list2 []int) []int {
+    res := make([]int, 0, len(list1)+len(list2)) // ← сразу нужная ёмкость, без реаллокаций
+    i, j := 0, 0
+    for i &lt; len(list1) &amp;&amp; j &lt; len(list2) {
+        if list1[i] &lt;= list2[j] {
+            res = append(res, list1[i])
+            i++
+        } else {
+            res = append(res, list2[j])
+            j++
+        }
+    }
+    res = append(res, list1[i:]...) // ← дописать хвост, у которого элементы остались
+    res = append(res, list2[j:]...)
+    return res
+}</code></pre><div class="refx"><p><b>Идея:</b> classic two-pointer — на каждом шаге сравниваем текущие «головы» обоих отсортированных слайсов и забираем меньшую; когда один слайс кончился, второй уже отсортирован — дописываем его хвост целиком (<b>ровно один</b> из двух <code>append(res, list_X[i:]...)</code> реально что-то добавит). Это и есть шаг <code>merge</code> из merge sort — часто спрашивают именно эту функцию отдельно, как строительный блок.</p><p><b>Проверяют:</b> <code>make(..., 0, cap)</code> с заранее известной ёмкостью (не заставлять <code>append</code> реаллоцировать по ходу), устойчивость сравнения <code>&lt;=</code> vs <code>&lt;</code> (сохранение порядка равных элементов между списками — не всегда важно, но стоит упомянуть), и O(n+m) вместо наивного «слить и пересортировать» (O((n+m)log(n+m))).</p></div></div></details>
 </article></div></details>
 </main>
 <script>
