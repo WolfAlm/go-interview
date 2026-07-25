@@ -94,7 +94,7 @@
 <body>
 <header>
   <h1>Конспекты — фундамент для Go-собеса</h1>
-  <div class="sub"><a href="index.html">🏠 Главная</a> · <a href="go-interview-bank.html">📚 Банк вопросов</a> · <a href="go-interview-tasks.html">🧩 Банк задач</a> · <a href="go-interview-mocks.html">🎤 Моки</a><br>Базовые понятия «с нуля». Термин непонятен → ищи его здесь.</div>
+  <div class="sub"><a href="index.html">🏠 Главная</a> · <a href="go-interview-bank.html">📚 Банк вопросов</a> · <a href="go-interview-system-design.html">🏗 System Design</a> · <a href="go-interview-tasks.html">🧩 Банк задач</a> · <a href="go-interview-mocks.html">🎤 Моки</a><br>Базовые понятия «с нуля». Термин непонятен → ищи его здесь.</div>
   <div class="toolbar">
     <input id="search" type="text" placeholder="Поиск понятия… (quicksort, хеш, UTF-8, TLB, ACID…)">
     <span id="stats"></span>
@@ -1970,7 +1970,7 @@ WHERE id = 1 AND version = 42;   -- 0 строк → повтор</pre>
 <li><b>P (Partition tolerance)</b> — работает, даже если часть узлов потеряла связь.</li>
 </ul>
 <p>Сеть ненадёжна, поэтому <b>P обязателен</b> — реальный выбор между <b>CP</b> (жертвуем доступностью ради согласованности — банки) и <b>AP</b> (отвечаем всегда, данные «догонят» — соцсети). <b>Eventual consistency</b> («в конечном счёте согласованно») — компромисс AP-систем: реплики временно расходятся, но сходятся. Связано с синхронной (CP) vs асинхронной (AP) репликацией.</p>
-<p class="see">Синхронная vs асинхронная репликация — карточка «Шардирование и репликация».</p>
+<p class="see">Синхронная vs асинхронная репликация — карточка «Шардирование и репликация». Подробнее про PACELC, модели консистентности и выбор CP/AP по операциям — <a href="go-interview-system-design.html#cap">конспект по System Design</a>.</p>
 </div>
 
 <div class="card" id="disttx">
@@ -1983,7 +1983,7 @@ WHERE id = 1 AND version = 42;   -- 0 строк → повтор</pre>
 <li><b>Обязательно:</b> идемпотентность шагов + <b>Outbox</b> для надёжной публикации событий (не потерять/не задвоить).</li>
 </ul>
 <p class="analogy">Поездка из рейсов разных авиакомпаний: не забронировался второй рейс — отменяешь (компенсируешь) первый.</p>
-<p class="see">Подробный разбор Saga (оркестрация vs хореография), Outbox, Inbox и DLQ вместе, с кодом и схемами — карточка <a href="#msgpatterns">Паттерны надёжности</a> ниже.</p>
+<p class="see">Подробный разбор Saga (оркестрация vs хореография), Outbox, Inbox и DLQ вместе, с кодом и схемами — карточка <a href="#msgpatterns">Паттерны надёжности</a> ниже. Как это звучит на system design — <a href="go-interview-system-design.html#c-msa">раздел про микросервисы</a>.</p>
 </div>
 
 <div class="card" id="resilience">
